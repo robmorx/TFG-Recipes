@@ -1,0 +1,21 @@
+/app
+/core
+    container.ts
+    TYPES.ts
+/data
+    /database
+    /AI
+    /repositories
+/domain
+    /entities
+        -user
+        -recipe
+        -inventory
+        -item
+
+    /usecases
+        crud?
+    /interfaces
+    /repositories
+/presentation
+    /viewmodel
