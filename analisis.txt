@@ -1,0 +1,7 @@
+/app
+/core
+    container.ts
+    TYPES.ts
+/data
+/domain
+/presentation
