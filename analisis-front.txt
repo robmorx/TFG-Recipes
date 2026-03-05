@@ -1,11 +1,21 @@
 /app
+    vistas
+    (drawer para diferentes ventanas)
 /core
     container.ts
     TYPES.ts
 /data
     /database
+        conection.ts
+            string getConnection
+
     /AI
+        AIapi.ts
+            prompt(string)
+            response(recipe)
+        API_Keys.ts (decidir que usar)
     /repositories
+        Repo correspondiente a cada usecase
 /domain
     /entities
         -user
@@ -16,6 +26,9 @@
     /usecases
         crud?
     /interfaces
+        interfaces respectivas
     /repositories
+        interfaces de repositorios respectivas
 /presentation
     /viewmodel
+        Uno para cada vista
