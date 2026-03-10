@@ -1,34 +1,161 @@
 /app
     vistas
     (drawer para diferentes ventanas)
+        HomeScreen - Muestra recetas guardadas
+        RecipeDetailScreen - Detalle de una receta
+        GenerateRecipeScreen - Formulario para generar receta con IA
+        InventoryScreen - Gestión del inventario
+        ProfileScreen - Datos del usuario
+
 /core
-    container.ts
-    TYPES.ts
+    TYPES.ts - Símbolos únicos para cada binding de Inversify
+        IItemRepository: Symbol
+        IUserRepository: Symbol
+        IRecipeRepository: Symbol
+        IInventoryRepository: Symbol
+        IAIApi: Symbol
+        ItemUseCase: Symbol
+        UserUseCase: Symbol
+        RecipeUseCase: Symbol
+        InventoryUseCase: Symbol
+    container.ts - Vincula interfaces con implementaciones concretas
+        bind<IItemRepository> -> ItemRepository
+        bind<IUserRepository> -> UserRepository
+        bind<IRecipeRepository> -> RecipeRepository
+        bind<IInventoryRepository> -> InventoryRepository
+        bind<IAIApi> -> AIapi
+        bind<ItemUseCase> inject(IItemRepository)
+        bind<RecipeUseCase> inject(IRecipeRepository, IAIApi)
+
 /data
     /database
-        conection.ts
-            string getConnection
+        connection.ts
+            +string getConnection() - Retorna la instancia/string de conexión a la DB
 
     /AI
-        AIapi.ts
-            prompt(string)
-            response(recipe)
-        API_Keys.ts (decidir que usar)
+        API_Keys.ts - Claves de API del proveedor de IA (no subir a git)
+            OPENAI_KEY: string
+            MODEL: string
+        AIapi.ts implements IAIApi
+            +void prompt(text: string) - Envía el texto al modelo de IA
+            +Recipe response() - Parsea y retorna la respuesta como entidad Recipe
+
     /repositories
-        Repo correspondiente a cada usecase
+        ItemRepository.ts implements IItemRepository
+            +Item[] get()
+            +Item getById(id: string)
+            +void post(item: Item)
+            +void update(item: Item)
+            +void delete(id: string)
+        UserRepository.ts implements IUserRepository
+            +User get()
+            +void post(user: User)
+        RecipeRepository.ts implements IRecipeRepository
+            +Recipe[] get()
+            +void post(recipe: Recipe)
+            +void delete(id: string)
+        InventoryRepository.ts implements IInventoryRepository
+            +Inventory get()
+            +void delete() - Vacía todo el inventario
+
 /domain
+    /dto
     /entities
-        -user
-        -recipe
-        -inventory
-        -item
+        user.ts
+            -id: string
+            -name: string
+            -email: string
+        recipe.ts
+            -id: string
+            -name: string
+            -ingredients: string[]
+            -steps: string[]
+            -userId: string
+        item.ts
+            -id: string
+            -name: string
+        inventory.ts
+            -userId: string
+            -items: Item[]
 
     /usecases
-        crud?
+        ItemUseCase.ts implements IItemUseCase inject(IItemRepository)
+            +Item[] get()
+            +void post(item: Item)
+            +void update(item: Item)
+            +void delete(id: string)
+        UserUseCase.ts implements IUserUseCase inject(IUserRepository)
+            +User get()
+            +void post(user: User)
+        RecipeUseCase.ts implements IRecipeUseCase inject(IRecipeRepository, IAIApi)
+            +Recipe[] get()
+            +Recipe post(prompt: string) - Llama a IAIApi, guarda resultado y lo retorna
+            +void delete(id: string)
+        InventoryUseCase.ts implements IInventoryUseCase inject(IInventoryRepository)
+            +Inventory get()
+            +void delete()
+
     /interfaces
-        interfaces respectivas
+        IItemUseCase.ts
+            +Item[] get()
+            +void post(item: Item)
+            +void update(item: Item)
+            +void delete(id: string)
+        IUserUseCase.ts
+            +User get()
+            +void post(user: User)
+        IRecipeUseCase.ts
+            +Recipe[] get()
+            +Recipe post(prompt: string)
+            +void delete(id: string)
+        IInventoryUseCase.ts
+            +Inventory get()
+            +void delete()
+
     /repositories
-        interfaces de repositorios respectivas
+        IItemRepository.ts
+            +Item[] get()
+            +Item getById(id: string)
+            +void post(item: Item)
+            +void update(item: Item)
+            +void delete(id: string)
+        IUserRepository.ts
+            +User get()
+            +void post(user: User)
+        IRecipeRepository.ts
+            +Recipe[] get()
+            +void post(recipe: Recipe)
+            +void delete(id: string)
+        IInventoryRepository.ts
+            +Inventory get()
+            +void delete()
+        IAIApi.ts
+            +void prompt(text: string)
+            +Recipe response()
+
 /presentation
     /viewmodel
-        Uno para cada vista
+        ItemVM.ts inject(IItemUseCase)
+            -Item[] items
+            -bool isLoading
+            +loadItems()
+            +addItem(item: Item)
+            +editItem(item: Item)
+            +removeItem(id: string)
+        UserVM.ts inject(IUserUseCase)
+            -User user
+            -bool isLoading
+            +loadUser()
+            +registerUser(user: User)
+        RecipeVM.ts inject(IRecipeUseCase)
+            -Recipe[] recipes
+            -Recipe currentRecipe
+            -bool isGenerating
+            +loadRecipes()
+            +generateRecipe(prompt: string)
+            +deleteRecipe(id: string)
+        InventoryVM.ts inject(IInventoryUseCase)
+            -Inventory inventory
+            -bool isLoading
+            +loadInventory()
+            +clearInventory()
