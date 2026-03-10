@@ -1,0 +1,34 @@
+/src
+    /domain
+        /recipe
+            recipe.ts (entity)
+                -id: number
+                -recipe_uuid: UUID
+                -name: string
+                -ingredients: string[]
+                -steps: string[]
+                -user_uuid: UUID
+                -atcreated: Date
+                -atmodified: Date
+            recipe.model.ts (database Model)
+                        recipe.interface.ts
+        /inventory
+            inventory.ts
+        /user
+            user.ts
+                -id: number
+                -user_uuid: UUID
+                -name: string
+                -email: string
+                -atcreated: Date
+                -atmodified: Date
+        /item
+            item.ts
+                -id: number
+                -item_uuid: UUID
+                -name: string
+
+
+    /presentation(controllers)
+        /usecases
+        /controllers
