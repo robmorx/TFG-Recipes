@@ -1,6 +1,60 @@
 /src
+    /data
+        /database (conexion a base de datos, NO HACE FALTA POR EL .env)
+        /repository (repositorios por tabla en base de datos)
+        (Implementaciones concretas de las interfaces del dominio. Acceso real a la DB vía Sequelize.)
+
+            user.repository.ts implements IUser @Injectable()
+                constructor inject(@InjectModel(UserModel))
+                +User[] getList() - Consulta findAll() a la tabla users
+                +User getById(id: number) - findOne() por user_id
+                +User getByUUID(uuid: UUID) - findOne() por user_uuid
+                +number add(entity: User) - create() + save() en la tabla users
+                +number delete(id: number) - findOne() + destroy()
+                +number update(id: number, entity: User) - update() donde user_id = id
+
+            recipe.repository.ts implements IRecipe @Injectable()
+                constructor inject(@InjectModel(RecipeModel))
+                +Recipe[] getList() - findAll() de todas las recetas
+                +Recipe getByUUID(uuid: UUID) - findOne() por recipe_uuid
+                +Recipe[] getByUserUUID(user_uuid: UUID) - findAll() filtrado por user_uuid
+                +number add(entity: Recipe) - create() + save()
+                +number delete(id: number) - findOne() + destroy()
+
+            item.repository.ts implements IItem @Injectable()
+                constructor inject(@InjectModel(ItemModel))
+                +Item[] getList() - findAll()
+                +Item getByUUID(uuid: UUID) - findOne() por item_uuid
+                +number add(entity: Item) - create() + save()
+                +number delete(id: number) - findOne() + destroy()
+                +number update(id: number, entity: Item) - update() donde item_id = id
+
+            inventory.repository.ts implements IInventory @Injectable()
+                constructor inject(@InjectModel(InventoryModel))
+                +Inventory getByUserUUID(user_uuid: UUID) - findOne() con include items
+                +number addItem(inventory_uuid, item_uuid) - Asocia item al inventario
+                +number clear(inventory_uuid) - Elimina todas las asociaciones del inventario
+
+
     /domain
+
         /recipe
+            /dto
+                recipe.add.request.dto.ts
+                    @IsString @IsNotEmpty name: string
+                    @IsString prompt: string - Texto para la IA
+                    @IsUUID user_uuid: UUID
+                recipe.delete.request.dto.ts
+                    @IsUUID recipe_uuid: UUID
+                recipe.getbyuser.request.dto.ts
+                    @IsUUID user_uuid: UUID
+                recipe.response.dto.ts
+                    +recipe_uuid: UUID
+                    +name: string
+                    +ingredients: string[]
+                    +steps: string[]
+                    +atcreated: Date    
+            
             recipe.ts (entity)
                 -id: number
                 -recipe_uuid: UUID
@@ -10,10 +64,10 @@
                 -user_uuid: UUID
                 -atcreated: Date
                 -atmodified: Date
+            
             recipe.model.ts (database Model)
                         recipe.interface.ts
-        /inventory
-            inventory.ts
+       
         /user
             user.ts
                 -id: number
@@ -23,6 +77,17 @@
                 -atcreated: Date
                 -atmodified: Date
         /item
+            /dto
+                item.add.request.dto.ts
+                    @IsString @IsNotEmpty name: string
+                item.update.request.dto.ts
+                    @IsUUID item_uuid: UUID
+                    @IsString name: string
+                item.delete.request.dto.ts
+                    @IsUUID item_uuid: UUID
+                item.response.dto.ts
+                    +item_uuid: UUID
+                    +name: string
             item.ts
                 -id: number
                 -item_uuid: UUID
@@ -32,3 +97,16 @@
     /presentation(controllers)
         /usecases
         /controllers
+                    recipe.controller.ts @Controller('api/recipes')
+                        @Get getList() - GET /api/recipes
+                        @Get getByUser(:user_uuid) - GET /api/recipes/:user_uuid
+                        @Post add(@Body RecipeAddRequestDTO) - POST /api/recipes/add
+                        @Delete delete(@Body RecipeDeleteRequestDTO) - DELETE /api/recipes/delete
+                    
+                    item.controller.ts @Controller('api/items')
+                            @Get getList() - GET /api/items
+                            @Post add(@Body ItemAddRequestDTO) - POST /api/items/add
+                            @Delete delete(@Body ItemDeleteRequestDTO) - DELETE /api/items/delete
+                            @Put update(@Body ItemUpdateRequestDTO) - PUT /api/items/update
+                    
+                    
