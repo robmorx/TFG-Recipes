@@ -6,6 +6,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AiModule } from './ai/ai.module';
+import { RecipeModule } from './recipe/recipe.module';
+import { ItemModule } from './item/item.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { AiModule } from './ai/ai.module';
     AuthModule,
     UsersModule,
     AiModule,
+    RecipeModule,
+    ItemModule,
   ],
   controllers: [AppController],
   providers: [AppService],

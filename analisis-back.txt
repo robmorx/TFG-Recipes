@@ -29,13 +29,7 @@
                 +number delete(id: number) - findOne() + destroy()
                 +number update(id: number, entity: Item) - update() donde item_id = id
 
-            inventory.repository.ts implements IInventory @Injectable()
-                constructor inject(@InjectModel(InventoryModel))
-                +Inventory getByUserUUID(user_uuid: UUID) - findOne() con include items
-                +number addItem(inventory_uuid, item_uuid) - Asocia item al inventario
-                +number clear(inventory_uuid) - Elimina todas las asociaciones del inventario
-
-
+         
     /domain
 
         /recipe

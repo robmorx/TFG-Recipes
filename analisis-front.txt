@@ -54,9 +54,7 @@
             +Recipe[] get()
             +void post(recipe: Recipe)
             +void delete(id: string)
-        InventoryRepository.ts implements IInventoryRepository
-            +Inventory get()
-            +void delete() - Vacía todo el inventario
+
 
 /domain
     /dto
@@ -74,9 +72,7 @@
         item.ts
             -id: string
             -name: string
-        inventory.ts
-            -userId: string
-            -items: Item[]
+
 
     /usecases
         ItemUseCase.ts implements IItemUseCase inject(IItemRepository)
@@ -91,9 +87,7 @@
             +Recipe[] get()
             +Recipe post(prompt: string) - Llama a IAIApi, guarda resultado y lo retorna
             +void delete(id: string)
-        InventoryUseCase.ts implements IInventoryUseCase inject(IInventoryRepository)
-            +Inventory get()
-            +void delete()
+       
 
     /interfaces
         IItemUseCase.ts
@@ -108,9 +102,6 @@
             +Recipe[] get()
             +Recipe post(prompt: string)
             +void delete(id: string)
-        IInventoryUseCase.ts
-            +Inventory get()
-            +void delete()
 
     /repositories
         IItemRepository.ts
@@ -126,9 +117,7 @@
             +Recipe[] get()
             +void post(recipe: Recipe)
             +void delete(id: string)
-        IInventoryRepository.ts
-            +Inventory get()
-            +void delete()
+
         IAIApi.ts
             +void prompt(text: string)
             +Recipe response()
@@ -154,8 +143,3 @@
             +loadRecipes()
             +generateRecipe(prompt: string)
             +deleteRecipe(id: string)
-        InventoryVM.ts inject(IInventoryUseCase)
-            -Inventory inventory
-            -bool isLoading
-            +loadInventory()
-            +clearInventory()
