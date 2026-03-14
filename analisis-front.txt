@@ -4,7 +4,7 @@
         HomeScreen - Muestra recetas guardadas
         RecipeDetailScreen - Detalle de una receta
         GenerateRecipeScreen - Formulario para generar receta con IA
-        InventoryScreen - Gestión del inventario
+        
         ProfileScreen - Datos del usuario
 
 /core
@@ -12,33 +12,23 @@
         IItemRepository: Symbol
         IUserRepository: Symbol
         IRecipeRepository: Symbol
-        IInventoryRepository: Symbol
-        IAIApi: Symbol
         ItemUseCase: Symbol
         UserUseCase: Symbol
         RecipeUseCase: Symbol
-        InventoryUseCase: Symbol
+        
     container.ts - Vincula interfaces con implementaciones concretas
         bind<IItemRepository> -> ItemRepository
         bind<IUserRepository> -> UserRepository
         bind<IRecipeRepository> -> RecipeRepository
-        bind<IInventoryRepository> -> InventoryRepository
-        bind<IAIApi> -> AIapi
+        
+
         bind<ItemUseCase> inject(IItemRepository)
-        bind<RecipeUseCase> inject(IRecipeRepository, IAIApi)
+        bind<RecipeUseCase> inject(IRecipeRepository, IAIService)
 
 /data
     /database
         connection.ts
             +string getConnection() - Retorna la instancia/string de conexión a la DB
-
-    /AI
-        API_Keys.ts - Claves de API del proveedor de IA (no subir a git)
-            OPENAI_KEY: string
-            MODEL: string
-        AIapi.ts implements IAIApi
-            +void prompt(text: string) - Envía el texto al modelo de IA
-            +Recipe response() - Parsea y retorna la respuesta como entidad Recipe
 
     /repositories
         ItemRepository.ts implements IItemRepository
@@ -52,12 +42,20 @@
             +void post(user: User)
         RecipeRepository.ts implements IRecipeRepository
             +Recipe[] get()
-            +void post(recipe: Recipe)
+            +void post(request : RecipeCreateRequestDTO)
             +void delete(id: string)
 
 
 /domain
     /dto
+        user.create.request.dto.ts
+            -name: string
+            -email: string
+            -password: string
+        recipe.create.request.dto.ts
+            -quantity: number (personas que comeran)
+            -type : string
+            -ingredients: string[]
     /entities
         user.ts
             -id: string
@@ -68,7 +66,7 @@
             -name: string
             -ingredients: string[]
             -steps: string[]
-            -userId: string
+            
         item.ts
             -id: string
             -name: string
@@ -83,9 +81,10 @@
         UserUseCase.ts implements IUserUseCase inject(IUserRepository)
             +User get()
             +void post(user: User)
-        RecipeUseCase.ts implements IRecipeUseCase inject(IRecipeRepository, IAIApi)
+        RecipeUseCase.ts implements IRecipeUseCase inject(IRecipeRepository)
             +Recipe[] get()
-            +Recipe post(prompt: string) - Llama a IAIApi, guarda resultado y lo retorna
+            +Recipe getById()
+            +Recipe post(request : RecipeCreateRequestDTO) 
             +void delete(id: string)
        
 
@@ -100,8 +99,10 @@
             +void post(user: User)
         IRecipeUseCase.ts
             +Recipe[] get()
-            +Recipe post(prompt: string)
+            +Recipe post(request : RecipeCreateRequestDTO) 
             +void delete(id: string)
+        IAIService.ts
+            +Recipe generate(prompt: string)
 
     /repositories
         IItemRepository.ts
@@ -115,12 +116,11 @@
             +void post(user: User)
         IRecipeRepository.ts
             +Recipe[] get()
-            +void post(recipe: Recipe)
+            +Recipe getById()
+            +Recipe post(request : RecipeCreateRequestDTO)
             +void delete(id: string)
 
-        IAIApi.ts
-            +void prompt(text: string)
-            +Recipe response()
+
 
 /presentation
     /viewmodel

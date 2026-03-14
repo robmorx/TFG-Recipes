@@ -1,10 +1,16 @@
 /src
     /data
+        /AI
+            (Servicio externo de IA, consumido por RecipeUseCase)
+            ai.service.ts @Injectable()
+                constructor inject(API_KEY, MODEL)
+                +Recipe generate(prompt: string) - Llama a la API de IA y parsea respuesta como entidad Recipe
+            ai.config.ts - Centraliza API_KEY y MODEL del proveedor (no subir a git, usar .env)
         /database (conexion a base de datos, NO HACE FALTA POR EL .env)
         /repository (repositorios por tabla en base de datos)
         (Implementaciones concretas de las interfaces del dominio. Acceso real a la DB vía Sequelize.)
 
-            user.repository.ts implements IUser @Injectable()
+            user.repository.ts implements IUserRepository @Injectable()
                 constructor inject(@InjectModel(UserModel))
                 +User[] getList() - Consulta findAll() a la tabla users
                 +User getById(id: number) - findOne() por user_id
@@ -13,7 +19,7 @@
                 +number delete(id: number) - findOne() + destroy()
                 +number update(id: number, entity: User) - update() donde user_id = id
 
-            recipe.repository.ts implements IRecipe @Injectable()
+            recipe.repository.ts implements IRecipeRepository @Injectable()
                 constructor inject(@InjectModel(RecipeModel))
                 +Recipe[] getList() - findAll() de todas las recetas
                 +Recipe getByUUID(uuid: UUID) - findOne() por recipe_uuid
@@ -21,7 +27,7 @@
                 +number add(entity: Recipe) - create() + save()
                 +number delete(id: number) - findOne() + destroy()
 
-            item.repository.ts implements IItem @Injectable()
+            item.repository.ts implements IItemRepository @Injectable()
                 constructor inject(@InjectModel(ItemModel))
                 +Item[] getList() - findAll()
                 +Item getByUUID(uuid: UUID) - findOne() por item_uuid
@@ -31,7 +37,32 @@
 
          
     /domain
+        /usecases
+                user.usecases.ts implements IUserUseCase @Injectable()
+                    constructor inject(UserRepository)
+                    +UserResponseDTO[] getList() - Obtiene lista y mapea a ResponseDTO
+                    +UserResponseDTO getByUUID(uuid) - Busca por UUID y mapea a ResponseDTO
+                    +number add(entity) - Construye entidad User con nuevo UUID y delega al repo
+                    +number delete(uuid) - Busca UUID, obtiene id interno y delega al repo
+                    +number update(entity) - Busca UUID, construye entidad actualizada y delega
 
+                
+
+                recipe.usecases.ts implements IRecipeUseCase @Injectable()
+                    constructor inject(RecipeRepository, AIService)
+                    +RecipeResponseDTO[] getList()
+                    +RecipeResponseDTO[] getByUserUUID(user_uuid)
+                    +number add(entity) - Llama a AIService.generate(prompt), guarda receta resultante
+                    +number delete(uuid) - Busca UUID, obtiene id y elimina
+
+
+                item.usecases.ts implements IItemUseCase @Injectable()
+                    constructor inject(ItemRepository)
+                    +ItemResponseDTO[] getList()
+                    +ItemResponseDTO getByUUID(uuid)
+                    +number add(entity) - Construye entidad Item con nuevo UUID y delega al repo
+                    +number delete(uuid) - Busca UUID, obtiene id interno y delega
+                    +number update(entity) - Busca UUID, construye entidad actualizada y delega
         /recipe
             /dto
                 recipe.add.request.dto.ts
@@ -48,7 +79,18 @@
                     +ingredients: string[]
                     +steps: string[]
                     +atcreated: Date    
-            
+            /interfaces
+                irecipe.usecase.ts
+                    +RecipeResponseDTO[] getList()
+                    +RecipeResponseDTO[] getByUserUUID(user_uuid: UUID)
+                    +number add(entity: RecipeAddRequestDTO) - Llama a IA y persiste resultado
+                    +number delete(uuid: UUID)
+                irecipe.repository.ts - Interfaz del repositorio (contrato para la capa data)
+                    +Recipe[] getList()
+                    +Recipe getByUUID(uuid: UUID)
+                    +Recipe[] getByUserUUID(user_uuid: UUID)
+                    +number add(entity: Recipe)
+                    +number delete(id: number)
             recipe.ts (entity)
                 -id: number
                 -recipe_uuid: UUID
@@ -63,13 +105,46 @@
                         recipe.interface.ts
        
         /user
+            /dto
+                user.add.request.dto.ts - Valida datos de entrada para crear usuario
+                    @IsString @IsNotEmpty name: string
+                    @IsString @IsNotEmpty @IsEmail email: string
+                    @IsString @IsNotEmpty @IsEmail password: string
+                user.update.request.dto.ts - Valida datos de entrada para actualizar usuario
+                    @IsUUID user_uuid: UUID
+                    @IsString name: string
+                    @IsString email: string
+                user.delete.request.dto.ts
+                    @IsUUID user_uuid: UUID
+                user.getbyuuid.request.dto.ts
+                    @IsUUID user_uuid: UUID
+                user.response.dto.ts - Formato de salida al cliente
+                    +user_uuid: UUID
+                    +name: string
+                    +email: string
+                    +atcreated: Date
             user.ts
                 -id: number
                 -user_uuid: UUID
                 -name: string
                 -email: string
+                -password : string
                 -atcreated: Date
                 -atmodified: Date
+            /interfaces
+                iuser.usecase.ts - Interfaz del caso de uso (contrato para UseCase y Controller)
+                    +UserResponseDTO[] getList()
+                    +UserResponseDTO getByUUID(uuid: UUID)
+                    +number add(entity: UserAddRequestDTO)
+                    +number delete(uuid: UUID)
+                    +number update(entity: UserUpdateRequestDTO)
+                iuser.repository.ts - Interfaz del repositorio (contrato para la capa data)
+                    +User[] getList()
+                    +User getById(id: number)
+                    +User getByUUID(uuid: UUID)
+                    +number add(entity: User)
+                    +number delete(id: number)
+                    +number update(id: number, entity: User)
         /item
             /dto
                 item.add.request.dto.ts
@@ -82,6 +157,19 @@
                 item.response.dto.ts
                     +item_uuid: UUID
                     +name: string
+            /interfaces
+                iitem.usecase.ts
+                    +ItemResponseDTO[] getList()
+                    +ItemResponseDTO getByUUID(uuid: UUID)
+                    +number add(entity: ItemAddRequestDTO)
+                    +number delete(uuid: UUID)
+                    +number update(entity: ItemUpdateRequestDTO)
+                iitem.repository.ts - Interfaz del repositorio (contrato para la capa data)
+                    +Item[] getList()
+                    +Item getByUUID(uuid: UUID)
+                    +number add(entity: Item)
+                    +number delete(id: number)
+                    +number update(id: number, entity: Item)
             item.ts
                 -id: number
                 -item_uuid: UUID
@@ -89,7 +177,7 @@
 
 
     /presentation(controllers)
-        /usecases
+        
         /controllers
                     recipe.controller.ts @Controller('api/recipes')
                         @Get getList() - GET /api/recipes
@@ -103,4 +191,10 @@
                             @Delete delete(@Body ItemDeleteRequestDTO) - DELETE /api/items/delete
                             @Put update(@Body ItemUpdateRequestDTO) - PUT /api/items/update
                     
-                    
+                    user.controller.ts @Controller('api/users')
+                        constructor inject(UserUseCase)
+                        @Get getList() - GET /api/users
+                        @Get getUser(:user_uuid) - GET /api/users/:user_uuid
+                        @Post add(@Body UserAddRequestDTO) - POST /api/users/add
+                        @Delete delete(@Body UserDeleteRequestDTO) - DELETE /api/users/delete
+                        @Put update(@Body UserUpdateRequestDTO) - PUT /api/users/update
