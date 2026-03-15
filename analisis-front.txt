@@ -84,7 +84,7 @@
         RecipeUseCase.ts implements IRecipeUseCase inject(IRecipeRepository)
             +Recipe[] get()
             +Recipe getById()
-            +Recipe post(request : RecipeCreateRequestDTO) 
+            +void post(request : RecipeCreateRequestDTO) 
             +void delete(id: string)
        
 
@@ -101,8 +101,7 @@
             +Recipe[] get()
             +Recipe post(request : RecipeCreateRequestDTO) 
             +void delete(id: string)
-        IAIService.ts
-            +Recipe generate(prompt: string)
+        
 
     /repositories
         IItemRepository.ts
