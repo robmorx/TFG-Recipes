@@ -3,5 +3,5 @@ export class RecipeResponseDTO {
   name: string;
   ingredients: string[];
   steps: string[];
-  createdAt: Date;
+  atcreated: Date;
 }

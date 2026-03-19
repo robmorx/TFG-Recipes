@@ -12,8 +12,8 @@ export class UserRepository implements IUserRepository {
     return users.map((u) => ({
       id: parseInt(u.id.replace(/-/g, '').slice(0, 8), 16),
       user_uuid: u.id,
-      name: '',
       email: u.email,
+      password: u.password,
       createdAt: u.createdAt,
       updatedAt: u.updatedAt,
     }));
@@ -26,8 +26,8 @@ export class UserRepository implements IUserRepository {
     return {
       id,
       user_uuid: user.id,
-      name: '',
       email: user.email,
+      password: user.password,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -39,8 +39,8 @@ export class UserRepository implements IUserRepository {
     return {
       id: parseInt(user.id.replace(/-/g, '').slice(0, 8), 16),
       user_uuid: user.id,
-      name: '',
       email: user.email,
+      password: user.password,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -50,7 +50,7 @@ export class UserRepository implements IUserRepository {
     const user = await this.prisma.user.create({
       data: {
         email: entity.email,
-        password: entity.name,
+        password: entity.password,
       },
     });
     return parseInt(user.id.replace(/-/g, '').slice(0, 8), 16);

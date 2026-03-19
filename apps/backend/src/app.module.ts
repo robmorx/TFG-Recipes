@@ -4,10 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from './presentation/users/users.module';
 import { AiModule } from './ai/ai.module';
-import { RecipeModule } from './recipe/recipe.module';
-import { ItemModule } from './item/item.module';
+import { RecipeModule } from './presentation/recipe/recipe.module';
+import { ItemModule } from './presentation/item/item.module';
 
 @Module({
   imports: [

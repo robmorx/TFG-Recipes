@@ -31,7 +31,6 @@ export class RecipeRepository implements IRecipeRepository {
         name: entity.name,
         ingredients: entity.ingredients,
         steps: entity.steps,
-        prompt: entity.prompt,
         userId: entity.user_uuid,
       },
     });
@@ -54,7 +53,6 @@ export class RecipeRepository implements IRecipeRepository {
       ingredients: r.ingredients,
       steps: r.steps,
       user_uuid: r.userId,
-      prompt: r.prompt,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     };

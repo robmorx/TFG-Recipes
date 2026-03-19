@@ -5,7 +5,6 @@ export interface Recipe {
   ingredients: string[];
   steps: string[];
   user_uuid: string;
-  prompt: string;
   createdAt: Date;
   updatedAt: Date;
 }

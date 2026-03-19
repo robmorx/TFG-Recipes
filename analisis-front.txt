@@ -142,3 +142,6 @@
             +loadRecipes()
             +generateRecipe(prompt: string)
             +deleteRecipe(id: string)
+
+
+            Te encargas del diseño frontend en React Native. No usas cosas obsoletas como React.FC. Basandote en la imagen quiero que hagas las vistas correspondientes que iran en la carpeta app
