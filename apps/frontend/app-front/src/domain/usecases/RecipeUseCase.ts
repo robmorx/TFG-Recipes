@@ -7,8 +7,13 @@ import { TYPES } from '../../core/TYPES';
 
 @injectable()
 export class RecipeUseCase implements IRecipeUseCase {
-  @inject(TYPES.IRecipeRepository)
-  private recipeRepository!: IRecipeRepository;
+  private recipeRepository: IRecipeRepository
+    constructor(
+        @inject(TYPES.IRecipeRepository)
+        recipeRepository: IRecipeRepository
+      ) {
+        this.recipeRepository = recipeRepository
+      }
 
   get(): Recipe[] {
     return this.recipeRepository.get();

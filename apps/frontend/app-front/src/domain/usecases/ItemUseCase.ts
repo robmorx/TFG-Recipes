@@ -6,8 +6,13 @@ import { TYPES } from '../../core/TYPES';
 
 @injectable()
 export class ItemUseCase implements IItemUseCase {
-  @inject(TYPES.IItemRepository)
-  private itemRepository!: IItemRepository;
+  private itemRepository: IItemRepository
+  constructor(
+      @inject(TYPES.IItemRepository)
+      itemRepository: IItemRepository
+    ) {
+      this.itemRepository = itemRepository
+    }
 
   get(): Item[] {
     return this.itemRepository.get();

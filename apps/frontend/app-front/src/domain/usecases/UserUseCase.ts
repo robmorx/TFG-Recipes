@@ -6,8 +6,13 @@ import { TYPES } from '../../core/TYPES';
 
 @injectable()
 export class UserUseCase implements IUserUseCase {
-  @inject(TYPES.IUserRepository)
-  private userRepository!: IUserRepository;
+  private userRepository: IUserRepository
+    constructor(
+        @inject(TYPES.IUserRepository)
+        userRepository: IUserRepository
+      ) {
+        this.userRepository = userRepository
+      }
 
   get(): User | undefined {
     return this.userRepository.get();
