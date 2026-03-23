@@ -18,9 +18,9 @@ export class RecipeRepository implements IRecipeRepository {
   post(request: RecipeCreateRequestDTO): Recipe {
     const recipe: Recipe = {
       id: Date.now().toString(),
-      name: `Receta de ${request.type}`,
+      name: request.name,
       ingredients: request.ingredients,
-      steps: ['Paso 1', 'Paso 2', 'Paso 3'],
+      steps: [],
     };
     this.recipes.push(recipe);
     return recipe;

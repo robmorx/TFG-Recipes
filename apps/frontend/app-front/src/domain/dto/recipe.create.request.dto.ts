@@ -1,5 +1,4 @@
 export interface RecipeCreateRequestDTO {
-  quantity: number;
-  type: string;
+  name: string;
   ingredients: string[];
 }
