@@ -21,9 +21,10 @@ export class UserUseCase implements IUserUseCase {
     return this.toResponseDTO(user);
   }
 
-  async add(entity: UserAddRequestDTO): Promise<number> {
+  async add(entity: UserAddRequestDTO): Promise<string> {
     const userEntity: Omit<User, 'id'> = {
       user_uuid: crypto.randomUUID(),
+      name: entity.name,
       email: entity.email,
       password: entity.password,
       createdAt: new Date(),
@@ -33,24 +34,22 @@ export class UserUseCase implements IUserUseCase {
   }
 
   async delete(uuid: string): Promise<number> {
-    const user = await this.userRepository.getByUUID(uuid);
-    if (!user) return 0;
-    return this.userRepository.delete(user.id);
+    return this.userRepository.delete(uuid);
   }
 
   async update(entity: UserUpdateRequestDTO): Promise<number> {
-    const user = await this.userRepository.getByUUID(entity.user_uuid);
-    if (!user) return 0;
     const updatedEntity: Partial<User> = {
+      name: entity.name,
       email: entity.email,
       updatedAt: new Date(),
     };
-    return this.userRepository.update(user.id, updatedEntity);
+    return this.userRepository.update(entity.user_uuid, updatedEntity);
   }
 
   private toResponseDTO(user: User): UserResponseDTO {
     return {
       user_uuid: user.user_uuid,
+      name: user.name,
       email: user.email,
       atcreated: user.createdAt,
     };

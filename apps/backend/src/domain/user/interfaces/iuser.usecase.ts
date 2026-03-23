@@ -5,7 +5,7 @@ import { UserResponseDTO } from '../dto/user.response.dto';
 export interface IUserUseCase {
   getList(): Promise<UserResponseDTO[]>;
   getByUUID(uuid: string): Promise<UserResponseDTO | null>;
-  add(entity: UserAddRequestDTO): Promise<number>;
+  add(entity: UserAddRequestDTO): Promise<string>;
   delete(uuid: string): Promise<number>;
   update(entity: UserUpdateRequestDTO): Promise<number>;
 }

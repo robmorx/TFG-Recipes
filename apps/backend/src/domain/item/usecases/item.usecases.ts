@@ -21,7 +21,7 @@ export class ItemUseCase implements IItemUseCase {
     return this.toResponseDTO(item);
   }
 
-  async add(entity: ItemAddRequestDTO): Promise<number> {
+  async add(entity: ItemAddRequestDTO): Promise<string> {
     const itemEntity: Omit<Item, 'id'> = {
       item_uuid: crypto.randomUUID(),
       name: entity.name,
@@ -32,19 +32,15 @@ export class ItemUseCase implements IItemUseCase {
   }
 
   async delete(uuid: string): Promise<number> {
-    const item = await this.itemRepository.getByUUID(uuid);
-    if (!item) return 0;
-    return this.itemRepository.delete(item.id);
+    return this.itemRepository.delete(uuid);
   }
 
   async update(entity: ItemUpdateRequestDTO): Promise<number> {
-    const item = await this.itemRepository.getByUUID(entity.item_uuid);
-    if (!item) return 0;
     const updatedEntity: Partial<Item> = {
       name: entity.name,
       updatedAt: new Date(),
     };
-    return this.itemRepository.update(item.id, updatedEntity);
+    return this.itemRepository.update(entity.item_uuid, updatedEntity);
   }
 
   private toResponseDTO(item: Item): ItemResponseDTO {

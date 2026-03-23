@@ -10,8 +10,8 @@ export class UserRepository implements IUserRepository {
   async getList(): Promise<User[]> {
     const users = await this.prisma.user.findMany();
     return users.map((u) => ({
-      id: parseInt(u.id.replace(/-/g, '').slice(0, 8), 16),
       user_uuid: u.id,
+      name: u.name,
       email: u.email,
       password: u.password,
       createdAt: u.createdAt,
@@ -19,26 +19,12 @@ export class UserRepository implements IUserRepository {
     }));
   }
 
-  async getById(id: number): Promise<User | null> {
-    const users = await this.prisma.user.findMany();
-    const user = users[id - 1];
-    if (!user) return null;
-    return {
-      id,
-      user_uuid: user.id,
-      email: user.email,
-      password: user.password,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
-  }
-
   async getByUUID(uuid: string): Promise<User | null> {
     const user = await this.prisma.user.findUnique({ where: { id: uuid } });
     if (!user) return null;
     return {
-      id: parseInt(user.id.replace(/-/g, '').slice(0, 8), 16),
       user_uuid: user.id,
+      name: user.name,
       email: user.email,
       password: user.password,
       createdAt: user.createdAt,
@@ -46,31 +32,31 @@ export class UserRepository implements IUserRepository {
     };
   }
 
-  async add(entity: Omit<User, 'id'>): Promise<number> {
+  async add(entity: Omit<User, 'id'>): Promise<string> {
     const user = await this.prisma.user.create({
       data: {
+        name: entity.name,
         email: entity.email,
         password: entity.password,
       },
     });
-    return parseInt(user.id.replace(/-/g, '').slice(0, 8), 16);
+    return user.id;
   }
 
-  async delete(id: number): Promise<number> {
-    const users = await this.prisma.user.findMany();
-    const user = users[id - 1];
+  async delete(uuid: string): Promise<number> {
+    const user = await this.prisma.user.findUnique({ where: { id: uuid } });
     if (!user) return 0;
-    await this.prisma.user.delete({ where: { id: user.id } });
+    await this.prisma.user.delete({ where: { id: uuid } });
     return 1;
   }
 
-  async update(id: number, entity: Partial<User>): Promise<number> {
-    const users = await this.prisma.user.findMany();
-    const user = users[id - 1];
+  async update(uuid: string, entity: Partial<User>): Promise<number> {
+    const user = await this.prisma.user.findUnique({ where: { id: uuid } });
     if (!user) return 0;
     await this.prisma.user.update({
-      where: { id: user.id },
+      where: { id: uuid },
       data: {
+        name: entity.name ?? user.name,
         email: entity.email ?? user.email,
       },
     });

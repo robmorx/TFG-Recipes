@@ -23,7 +23,7 @@ export class RecipeUseCase implements IRecipeUseCase {
     return recipes.map((r) => this.toResponseDTO(r));
   }
 
-  async add(entity: RecipeAddRequestDTO): Promise<number> {
+  async add(entity: RecipeAddRequestDTO): Promise<string> {
     const generatedRecipe = await this.aiService.generate(entity.prompt);
     const recipeEntity: Omit<Recipe, 'id'> = {
       recipe_uuid: crypto.randomUUID(),
@@ -38,9 +38,7 @@ export class RecipeUseCase implements IRecipeUseCase {
   }
 
   async delete(uuid: string): Promise<number> {
-    const recipe = await this.recipeRepository.getByUUID(uuid);
-    if (!recipe) return 0;
-    return this.recipeRepository.delete(recipe.id);
+    return this.recipeRepository.delete(uuid);
   }
 
   private toResponseDTO(recipe: Recipe): RecipeResponseDTO {

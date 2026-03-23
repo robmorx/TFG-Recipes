@@ -5,6 +5,9 @@ export class UserUpdateRequestDTO {
   user_uuid: string;
 
   @IsString()
+  name: string;
+
+  @IsString()
   @IsEmail()
   email: string;
 }

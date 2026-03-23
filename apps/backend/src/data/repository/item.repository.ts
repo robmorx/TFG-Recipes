@@ -18,29 +18,27 @@ export class ItemRepository implements IItemRepository {
     return this.mapToEntity(item);
   }
 
-  async add(entity: Omit<Item, 'id'>): Promise<number> {
+  async add(entity: Omit<Item, 'id'>): Promise<string> {
     const item = await this.prisma.item.create({
       data: {
         name: entity.name,
       },
     });
-    return parseInt(item.id.replace(/-/g, '').slice(0, 8), 16);
+    return item.id;
   }
 
-  async delete(id: number): Promise<number> {
-    const items = await this.prisma.item.findMany();
-    const item = items[id - 1];
+  async delete(uuid: string): Promise<number> {
+    const item = await this.prisma.item.findUnique({ where: { id: uuid } });
     if (!item) return 0;
-    await this.prisma.item.delete({ where: { id: item.id } });
+    await this.prisma.item.delete({ where: { id: uuid } });
     return 1;
   }
 
-  async update(id: number, entity: Partial<Item>): Promise<number> {
-    const items = await this.prisma.item.findMany();
-    const item = items[id - 1];
+  async update(uuid: string, entity: Partial<Item>): Promise<number> {
+    const item = await this.prisma.item.findUnique({ where: { id: uuid } });
     if (!item) return 0;
     await this.prisma.item.update({
-      where: { id: item.id },
+      where: { id: uuid },
       data: {
         name: entity.name ?? item.name,
       },
@@ -50,7 +48,7 @@ export class ItemRepository implements IItemRepository {
 
   private mapToEntity(i: any): Item {
     return {
-      id: parseInt(i.id.replace(/-/g, '').slice(0, 8), 16),
+      id: 0,
       item_uuid: i.id,
       name: i.name,
       createdAt: i.createdAt,
