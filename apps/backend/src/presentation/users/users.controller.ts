@@ -4,7 +4,7 @@ import { UserAddRequestDTO } from '../../domain/user/dto/user.add.request.dto';
 import { UserDeleteRequestDTO } from '../../domain/user/dto/user.delete.request.dto';
 import { UserUpdateRequestDTO } from '../../domain/user/dto/user.update.request.dto';
 
-@Controller('api/users')
+@Controller('/users')
 export class UsersController {
   constructor(private readonly userUseCase: UserUseCase) {}
 

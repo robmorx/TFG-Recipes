@@ -3,7 +3,7 @@ import { RecipeUseCase } from '../../domain/recipe/usecases/recipe.usecases';
 import { RecipeAddRequestDTO } from '../../domain/recipe/dto/recipe.add.request.dto';
 import { RecipeDeleteRequestDTO } from '../../domain/recipe/dto/recipe.delete.request.dto';
 
-@Controller('api/recipes')
+@Controller('/recipes')
 export class RecipeController {
   constructor(private readonly recipeUseCase: RecipeUseCase) {}
 

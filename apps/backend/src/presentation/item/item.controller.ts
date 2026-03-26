@@ -4,7 +4,7 @@ import { ItemAddRequestDTO } from '../../domain/item/dto/item.add.request.dto';
 import { ItemUpdateRequestDTO } from '../../domain/item/dto/item.update.request.dto';
 import { ItemDeleteRequestDTO } from '../../domain/item/dto/item.delete.request.dto';
 
-@Controller('api/items')
+@Controller('/items')
 export class ItemController {
   constructor(private readonly itemUseCase: ItemUseCase) {}
 
