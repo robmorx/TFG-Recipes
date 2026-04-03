@@ -5,7 +5,20 @@ import { RecipeCreateRequestDTO } from '../../domain/dto/recipe.create.request.d
 
 @injectable()
 export class RecipeRepository implements IRecipeRepository {
-  private recipes: Recipe[] = [];
+  private recipes: Recipe[] = [
+    {
+      id: '1',
+      name: 'Paella Valenciana',
+      ingredients: ['arroz', 'marisco', 'azafrán', 'pimiento'],
+      steps: ['Cocinar arroz', 'Añadir marisco', 'Reposar'],
+    },
+    {
+      id: '2',
+      name: 'Ensalada César',
+      ingredients: ['lechuga', 'pollo', 'queso', 'crutones'],
+      steps: ['Lavar lechuga', 'Añadir pollo', 'Echar queso'],
+    },
+  ];
 
   get(): Recipe[] {
     return this.recipes;
@@ -18,9 +31,9 @@ export class RecipeRepository implements IRecipeRepository {
   post(request: RecipeCreateRequestDTO): Recipe {
     const recipe: Recipe = {
       id: Date.now().toString(),
-      name: request.name,
+      name: request.type,
       ingredients: request.ingredients,
-      steps: [],
+      steps: [`Preparar ingredientes para ${request.quantity} personas`, 'Mezclar', 'Cocinar'],
     };
     this.recipes.push(recipe);
     return recipe;

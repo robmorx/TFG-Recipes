@@ -4,7 +4,11 @@ import { IUserRepository } from '../../domain/repositories/IUserRepository';
 
 @injectable()
 export class UserRepository implements IUserRepository {
-  private user: User | undefined;
+  private user: User | undefined = {
+    id: '1',
+    name: 'Juan Pérez',
+    email: 'juan@example.com',
+  };
 
   get(): User | undefined {
     return this.user;

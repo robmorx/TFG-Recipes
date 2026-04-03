@@ -4,7 +4,12 @@ import { IItemRepository } from '../../domain/repositories/IItemRepository';
 
 @injectable()
 export class ItemRepository implements IItemRepository {
-  private items: Item[] = [];
+  private items: Item[] = [
+    { id: '1', name: 'Tomates', quantity: 5 },
+    { id: '2', name: 'Cebollas', quantity: 3 },
+    { id: '3', name: 'Ajo', quantity: 10 },
+    { id: '4', name: 'Aceite de oliva', quantity: 1 },
+  ];
 
   get(): Item[] {
     return this.items;
