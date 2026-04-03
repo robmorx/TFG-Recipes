@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../../../data/repository/user.repository';
+import { InventoryRepository } from '../../../data/repository/inventory.repository';
 import { UserAddRequestDTO } from '../dto/user.add.request.dto';
 import { UserUpdateRequestDTO } from '../dto/user.update.request.dto';
 import { UserResponseDTO } from '../dto/user.response.dto';
@@ -8,7 +9,10 @@ import { User } from '../user';
 
 @Injectable()
 export class UserUseCase implements IUserUseCase {
-  constructor(private userRepository: UserRepository) {}
+  constructor(
+    private userRepository: UserRepository,
+    private inventoryRepository: InventoryRepository,
+  ) {}
 
   async getList(): Promise<UserResponseDTO[]> {
     const users = await this.userRepository.getList();
@@ -21,19 +25,25 @@ export class UserUseCase implements IUserUseCase {
     return this.toResponseDTO(user);
   }
 
-  async add(entity: UserAddRequestDTO): Promise<string> {
+  async add(entity: UserAddRequestDTO): Promise<number> {
+    const user_uuid = crypto.randomUUID();
     const userEntity: Omit<User, 'id'> = {
-      user_uuid: crypto.randomUUID(),
+      user_uuid,
       name: entity.name,
       email: entity.email,
       password: entity.password,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    return this.userRepository.add(userEntity);
+    const userId = await this.userRepository.add(userEntity);
+    await this.inventoryRepository.add({ user_uuid });
+    return userId;
   }
 
   async delete(uuid: string): Promise<number> {
+    const user = await this.userRepository.getByUUID(uuid);
+    if (!user) return 0;
+    await this.inventoryRepository.delete(user.id);
     return this.userRepository.delete(uuid);
   }
 

@@ -1,7 +1,8 @@
 export interface Item {
   id: number;
-  item_uuid: string;
+  inventory_id: number;
   name: string;
+  quantity: number;
   createdAt: Date;
   updatedAt: Date;
 }

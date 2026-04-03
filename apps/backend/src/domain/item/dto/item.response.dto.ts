@@ -1,4 +1,5 @@
 export class ItemResponseDTO {
-  item_uuid: string;
+  id: number;
   name: string;
+  quantity: number;
 }

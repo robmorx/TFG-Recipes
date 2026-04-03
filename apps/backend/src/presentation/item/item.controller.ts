@@ -1,17 +1,12 @@
-import { Controller, Get, Post, Delete, Put, Body, Inject } from '@nestjs/common';
+import { Controller, Post, Delete, Put, Body } from '@nestjs/common';
 import { ItemUseCase } from '../../domain/item/usecases/item.usecases';
 import { ItemAddRequestDTO } from '../../domain/item/dto/item.add.request.dto';
 import { ItemUpdateRequestDTO } from '../../domain/item/dto/item.update.request.dto';
 import { ItemDeleteRequestDTO } from '../../domain/item/dto/item.delete.request.dto';
 
-@Controller('/items')
+@Controller('api/items')
 export class ItemController {
   constructor(private readonly itemUseCase: ItemUseCase) {}
-
-  @Get()
-  async getList() {
-    return this.itemUseCase.getList();
-  }
 
   @Post('add')
   async add(@Body() dto: ItemAddRequestDTO) {
@@ -20,7 +15,7 @@ export class ItemController {
 
   @Delete('delete')
   async delete(@Body() dto: ItemDeleteRequestDTO) {
-    return this.itemUseCase.delete(dto.item_uuid);
+    return this.itemUseCase.delete(dto.id);
   }
 
   @Put('update')

@@ -9,30 +9,23 @@ export class UserRepository implements IUserRepository {
 
   async getList(): Promise<User[]> {
     const users = await this.prisma.user.findMany();
-    return users.map((u) => ({
-      user_uuid: u.id,
-      name: u.name,
-      email: u.email,
-      password: u.password,
-      createdAt: u.createdAt,
-      updatedAt: u.updatedAt,
-    }));
+    return users.map((u) => this.mapToEntity(u));
+  }
+
+  async getById(id: number): Promise<User | null> {
+    const users = await this.prisma.user.findMany();
+    const user = users[id - 1];
+    if (!user) return null;
+    return this.mapToEntity(user);
   }
 
   async getByUUID(uuid: string): Promise<User | null> {
     const user = await this.prisma.user.findUnique({ where: { id: uuid } });
     if (!user) return null;
-    return {
-      user_uuid: user.id,
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return this.mapToEntity(user);
   }
 
-  async add(entity: Omit<User, 'id'>): Promise<string> {
+  async add(entity: Omit<User, 'id'>): Promise<number> {
     const user = await this.prisma.user.create({
       data: {
         name: entity.name,
@@ -40,7 +33,7 @@ export class UserRepository implements IUserRepository {
         password: entity.password,
       },
     });
-    return user.id;
+    return parseInt(user.id.replace(/-/g, '').slice(0, 8), 16);
   }
 
   async delete(uuid: string): Promise<number> {
@@ -61,5 +54,17 @@ export class UserRepository implements IUserRepository {
       },
     });
     return 1;
+  }
+
+  private mapToEntity(u: any): User {
+    return {
+      id: parseInt(u.id.replace(/-/g, '').slice(0, 8), 16),
+      user_uuid: u.id,
+      name: u.name,
+      email: u.email,
+      password: u.password,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
+    };
   }
 }

@@ -1,6 +1,6 @@
-import { IsUUID } from 'class-validator';
+import { IsNumber } from 'class-validator';
 
 export class ItemDeleteRequestDTO {
-  @IsUUID()
-  item_uuid: string;
+  @IsNumber()
+  id: number;
 }

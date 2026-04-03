@@ -7,40 +7,45 @@ import { IItemRepository } from '../../domain/item/item.repository.interface';
 export class ItemRepository implements IItemRepository {
   constructor(private prisma: PrismaService) {}
 
-  async getList(): Promise<Item[]> {
+  async getById(id: number): Promise<Item | null> {
     const items = await this.prisma.item.findMany();
-    return items.map((i) => this.mapToEntity(i));
-  }
-
-  async getByUUID(uuid: string): Promise<Item | null> {
-    const item = await this.prisma.item.findUnique({ where: { id: uuid } });
+    const item = items[id - 1];
     if (!item) return null;
     return this.mapToEntity(item);
   }
 
-  async add(entity: Omit<Item, 'id'>): Promise<string> {
+  async add(entity: Omit<Item, 'id'>): Promise<number> {
+    const inventories = await this.prisma.inventory.findMany();
+    const inventory = inventories[entity.inventory_id - 1];
+    if (!inventory) return 0;
+
     const item = await this.prisma.item.create({
       data: {
+        inventoryId: inventory.id,
         name: entity.name,
+        quantity: entity.quantity,
       },
     });
-    return item.id;
+    return parseInt(item.id.replace(/-/g, '').slice(0, 8), 16);
   }
 
-  async delete(uuid: string): Promise<number> {
-    const item = await this.prisma.item.findUnique({ where: { id: uuid } });
+  async delete(id: number): Promise<number> {
+    const items = await this.prisma.item.findMany();
+    const item = items[id - 1];
     if (!item) return 0;
-    await this.prisma.item.delete({ where: { id: uuid } });
+    await this.prisma.item.delete({ where: { id: item.id } });
     return 1;
   }
 
-  async update(uuid: string, entity: Partial<Item>): Promise<number> {
-    const item = await this.prisma.item.findUnique({ where: { id: uuid } });
+  async update(id: number, entity: Partial<Item>): Promise<number> {
+    const items = await this.prisma.item.findMany();
+    const item = items[id - 1];
     if (!item) return 0;
     await this.prisma.item.update({
-      where: { id: uuid },
+      where: { id: item.id },
       data: {
         name: entity.name ?? item.name,
+        quantity: entity.quantity ?? item.quantity,
       },
     });
     return 1;
@@ -48,9 +53,10 @@ export class ItemRepository implements IItemRepository {
 
   private mapToEntity(i: any): Item {
     return {
-      id: 0,
-      item_uuid: i.id,
+      id: parseInt(i.id.replace(/-/g, '').slice(0, 8), 16),
+      inventory_id: parseInt(i.inventoryId.replace(/-/g, '').slice(0, 8), 16),
       name: i.name,
+      quantity: i.quantity,
       createdAt: i.createdAt,
       updatedAt: i.updatedAt,
     };

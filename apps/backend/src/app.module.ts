@@ -8,6 +8,7 @@ import { UsersModule } from './presentation/users/users.module';
 import { AiModule } from './ai/ai.module';
 import { RecipeModule } from './presentation/recipe/recipe.module';
 import { ItemModule } from './presentation/item/item.module';
+import { InventoryModule } from './presentation/inventory/inventory.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ItemModule } from './presentation/item/item.module';
     AiModule,
     RecipeModule,
     ItemModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

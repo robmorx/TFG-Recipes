@@ -1,9 +1,13 @@
-import { IsUUID, IsString } from 'class-validator';
+import { IsNumber, IsString, Min } from 'class-validator';
 
 export class ItemUpdateRequestDTO {
-  @IsUUID()
-  item_uuid: string;
+  @IsNumber()
+  id: number;
 
   @IsString()
   name: string;
+
+  @IsNumber()
+  @Min(0)
+  quantity: number;
 }
