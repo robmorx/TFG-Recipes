@@ -23,6 +23,7 @@ export class ItemUseCase implements IItemUseCase {
       inventory_id: inventory.id,
       name: entity.name,
       quantity: entity.quantity,
+      quantity_unit: entity.quantity_unit,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -37,6 +38,7 @@ export class ItemUseCase implements IItemUseCase {
     const updatedEntity: Partial<Item> = {
       name: entity.name,
       quantity: entity.quantity,
+      quantity_unit: entity.quantity_unit,
       updatedAt: new Date(),
     };
     return this.itemRepository.update(entity.id, updatedEntity);

@@ -6,8 +6,8 @@ export default function Index() {
   const router = useRouter();
 
   const handleLogin = () => {
-    router.replace("/home");
+    router.replace("/vistas/HomeScreen");
   };
 
-  return <LoginScreen onLogin={handleLogin} />;
+  return <LoginScreen />;
 }

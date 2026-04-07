@@ -1,9 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
 }
 
-generator client {
-  provider = "prisma-client-js"
+enum QuantityUnit {
+  LITRES
+  KILOGRAMS
+  GRAMS
+  UNITS
+}
+
+enum RecipeType {
+  BREAKFAST
+  LUNCH
+  DINNER
 }
 
 model User {
@@ -27,22 +40,24 @@ model Inventory {
 }
 
 model Recipe {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   name        String
   ingredients String[]
   steps       String[]
+  type        RecipeType @default(DINNER)
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  user        User       @relation(fields: [userId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model Item {
-  id          String    @id @default(uuid())
-  inventoryId String
-  inventory   Inventory @relation(fields: [inventoryId], references: [id])
-  name        String
-  quantity    Int       @default(1)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           String        @id @default(uuid())
+  inventoryId  String
+  inventory    Inventory     @relation(fields: [inventoryId], references: [id])
+  name         String
+  quantity     Int           @default(1)
+  quantityUnit QuantityUnit  @default(UNITS)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }

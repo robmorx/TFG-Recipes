@@ -1,3 +1,5 @@
+import { Item } from './item';
+
 export interface Inventory {
   id: string;
   inventory_uuid?: string;

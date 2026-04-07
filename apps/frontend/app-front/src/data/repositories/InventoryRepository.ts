@@ -27,6 +27,13 @@ export class InventoryRepository implements IInventoryRepository {
     this.inventories.push(inventory);
   }
 
+  update(inventory: Inventory): void {
+    const index = this.inventories.findIndex(i => i.id === inventory.id);
+    if (index !== -1) {
+      this.inventories[index] = inventory;
+    }
+  }
+
   delete(id: string): void {
     this.inventories = this.inventories.filter(inv => inv.id !== id);
   }

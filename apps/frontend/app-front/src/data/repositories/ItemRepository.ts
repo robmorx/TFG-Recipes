@@ -1,14 +1,16 @@
 import { injectable } from 'inversify';
-import { Item } from '../../domain/entities/item';
+import { Item, QuantityUnit } from '../../domain/entities/item';
 import { IItemRepository } from '../../domain/repositories/IItemRepository';
 
 @injectable()
 export class ItemRepository implements IItemRepository {
   private items: Item[] = [
-    { id: '1', name: 'Tomates', quantity: 5 },
-    { id: '2', name: 'Cebollas', quantity: 3 },
-    { id: '3', name: 'Ajo', quantity: 10 },
-    { id: '4', name: 'Aceite de oliva', quantity: 1 },
+    { id: '1', name: 'Tomates', quantity: 5, quantity_unit: QuantityUnit.UNITS },
+    { id: '2', name: 'Cebollas', quantity: 3, quantity_unit: QuantityUnit.UNITS },
+    { id: '3', name: 'Ajo', quantity: 10, quantity_unit: QuantityUnit.GRAMS },
+    { id: '4', name: 'Aceite de oliva', quantity: 1, quantity_unit: QuantityUnit.LITRES },
+    { id: '5', name: 'Pollo', quantity: 2, quantity_unit: QuantityUnit.KILOGRAMS },
+    { id: '6', name: 'Leche', quantity: 2, quantity_unit: QuantityUnit.LITRES },
   ];
 
   get(): Item[] {

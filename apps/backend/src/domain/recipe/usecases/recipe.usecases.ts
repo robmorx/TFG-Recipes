@@ -30,6 +30,7 @@ export class RecipeUseCase implements IRecipeUseCase {
       name: generatedRecipe.name,
       ingredients: generatedRecipe.ingredients,
       steps: generatedRecipe.steps,
+      type: entity.type,
       user_uuid: entity.user_uuid,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -47,6 +48,7 @@ export class RecipeUseCase implements IRecipeUseCase {
       name: recipe.name,
       ingredients: recipe.ingredients,
       steps: recipe.steps,
+      type: recipe.type,
       atcreated: recipe.createdAt,
     };
   }

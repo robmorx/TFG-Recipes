@@ -1,4 +1,5 @@
-import { IsNumber, IsString, Min } from 'class-validator';
+import { IsNumber, IsString, Min, IsEnum } from 'class-validator';
+import { QuantityUnit } from '../item';
 
 export class ItemUpdateRequestDTO {
   @IsNumber()
@@ -10,4 +11,7 @@ export class ItemUpdateRequestDTO {
   @IsNumber()
   @Min(0)
   quantity: number;
+
+  @IsEnum(QuantityUnit)
+  quantity_unit: QuantityUnit;
 }

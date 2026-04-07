@@ -24,6 +24,7 @@ export class ItemRepository implements IItemRepository {
         inventoryId: inventory.id,
         name: entity.name,
         quantity: entity.quantity,
+        quantityUnit: entity.quantity_unit,
       },
     });
     return parseInt(item.id.replace(/-/g, '').slice(0, 8), 16);
@@ -46,6 +47,7 @@ export class ItemRepository implements IItemRepository {
       data: {
         name: entity.name ?? item.name,
         quantity: entity.quantity ?? item.quantity,
+        quantityUnit: entity.quantity_unit ?? item.quantityUnit,
       },
     });
     return 1;
@@ -57,6 +59,7 @@ export class ItemRepository implements IItemRepository {
       inventory_id: parseInt(i.inventoryId.replace(/-/g, '').slice(0, 8), 16),
       name: i.name,
       quantity: i.quantity,
+      quantity_unit: i.quantityUnit,
       createdAt: i.createdAt,
       updatedAt: i.updatedAt,
     };
