@@ -2,5 +2,5 @@ export class UserResponseDTO {
   user_uuid: string;
   name: string;
   email: string;
-  atcreated: Date;
+  createdAt: Date;
 }

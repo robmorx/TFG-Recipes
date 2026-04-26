@@ -23,7 +23,14 @@ export class RecipeUseCase implements IRecipeUseCase {
     return recipes.map((r) => this.toResponseDTO(r));
   }
 
-  async add(entity: RecipeAddRequestDTO): Promise<string> {
+  async getByInternalUserId(id: number): Promise<RecipeResponseDTO[]> {
+    const user = await this.recipeRepository.getUserByInternalId(id);
+    if (!user) return [];
+    const recipes = await this.recipeRepository.getByUserUUID(user.user_uuid);
+    return recipes.map((r) => this.toResponseDTO(r));
+  }
+
+  async add(entity: RecipeAddRequestDTO): Promise<RecipeResponseDTO> {
     const generatedRecipe = await this.aiService.generate(entity.prompt);
     const recipeEntity: Omit<Recipe, 'id'> = {
       recipe_uuid: crypto.randomUUID(),
@@ -35,11 +42,13 @@ export class RecipeUseCase implements IRecipeUseCase {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    return this.recipeRepository.add(recipeEntity);
+    const recipe = await this.recipeRepository.add(recipeEntity);
+    return this.toResponseDTO(recipe);
   }
 
-  async delete(uuid: string): Promise<number> {
-    return this.recipeRepository.delete(uuid);
+  async delete(uuid: string): Promise<boolean> {
+    const result = await this.recipeRepository.delete(uuid);
+    return result > 0;
   }
 
   private toResponseDTO(recipe: Recipe): RecipeResponseDTO {
@@ -49,7 +58,7 @@ export class RecipeUseCase implements IRecipeUseCase {
       ingredients: recipe.ingredients,
       steps: recipe.steps,
       type: recipe.type,
-      atcreated: recipe.createdAt,
+      createdAt: recipe.createdAt,
     };
   }
 }

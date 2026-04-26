@@ -25,35 +25,45 @@ export class UserUseCase implements IUserUseCase {
     return this.toResponseDTO(user);
   }
 
-  async add(entity: UserAddRequestDTO): Promise<number> {
-    const user_uuid = crypto.randomUUID();
-    const userEntity: Omit<User, 'id'> = {
-      user_uuid,
+  async getByInternalId(id: number): Promise<UserResponseDTO | null> {
+    const user = await this.userRepository.getById(id);
+    if (!user) return null;
+    return this.toResponseDTO(user);
+  }
+
+  async add(entity: UserAddRequestDTO): Promise<UserResponseDTO> {
+    const userEntity: Omit<User, 'id' | 'user_uuid'> = {
       name: entity.name,
       email: entity.email,
       password: entity.password,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    const userId = await this.userRepository.add(userEntity);
-    await this.inventoryRepository.add({ user_uuid });
-    return userId;
+    const userUuid = await this.userRepository.add(userEntity as any);
+    await this.inventoryRepository.add({ user_uuid: userUuid });
+    const user = await this.userRepository.getByUUID(userUuid);
+    return this.toResponseDTO(user!);
   }
 
-  async delete(uuid: string): Promise<number> {
+  async delete(uuid: string): Promise<boolean> {
     const user = await this.userRepository.getByUUID(uuid);
-    if (!user) return 0;
-    await this.inventoryRepository.delete(user.id);
-    return this.userRepository.delete(uuid);
+    if (!user) return false;
+    const deleted = await this.userRepository.delete(uuid);
+    if (deleted) {
+      await this.inventoryRepository.delete(uuid);
+    }
+    return deleted > 0;
   }
 
-  async update(entity: UserUpdateRequestDTO): Promise<number> {
+  async update(entity: UserUpdateRequestDTO): Promise<UserResponseDTO> {
     const updatedEntity: Partial<User> = {
       name: entity.name,
       email: entity.email,
       updatedAt: new Date(),
     };
-    return this.userRepository.update(entity.user_uuid, updatedEntity);
+    await this.userRepository.update(entity.user_uuid, updatedEntity);
+    const user = await this.userRepository.getByUUID(entity.user_uuid);
+    return this.toResponseDTO(user!);
   }
 
   private toResponseDTO(user: User): UserResponseDTO {
@@ -61,7 +71,7 @@ export class UserUseCase implements IUserUseCase {
       user_uuid: user.user_uuid,
       name: user.name,
       email: user.email,
-      atcreated: user.createdAt,
+      createdAt: user.createdAt,
     };
   }
 }

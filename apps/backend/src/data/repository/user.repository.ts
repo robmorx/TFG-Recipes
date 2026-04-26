@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { User } from '../../domain/user/user';
 import { IUserRepository } from '../../domain/user/user.repository.interface';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -25,15 +26,26 @@ export class UserRepository implements IUserRepository {
     return this.mapToEntity(user);
   }
 
-  async add(entity: Omit<User, 'id'>): Promise<number> {
+  async getByEmail(email: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) return null;
+    return this.mapToEntity(user);
+  }
+
+  async validatePassword(user: User, password: string): Promise<boolean> {
+    return bcrypt.compare(password, user.password);
+  }
+
+  async add(entity: Omit<User, 'id'>): Promise<string> {
+    const hashedPassword = await bcrypt.hash(entity.password, 10);
     const user = await this.prisma.user.create({
       data: {
         name: entity.name,
         email: entity.email,
-        password: entity.password,
+        password: hashedPassword,
       },
     });
-    return parseInt(user.id.replace(/-/g, '').slice(0, 8), 16);
+    return user.id;
   }
 
   async delete(uuid: string): Promise<number> {

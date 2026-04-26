@@ -6,5 +6,5 @@ export class RecipeResponseDTO {
   ingredients: string[];
   steps: string[];
   type: RecipeType;
-  atcreated: Date;
+  createdAt: Date;
 }

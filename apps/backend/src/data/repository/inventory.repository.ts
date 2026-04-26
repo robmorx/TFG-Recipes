@@ -16,18 +16,19 @@ export class InventoryRepository implements IInventoryRepository {
     return this.mapToEntity(inventory);
   }
 
-  async add(entity: { user_uuid: string }): Promise<number> {
+  async add(entity: { user_uuid: string }): Promise<Inventory> {
     const inventory = await this.prisma.inventory.create({
       data: {
         userId: entity.user_uuid,
       },
     });
-    return parseInt(inventory.id.replace(/-/g, '').slice(0, 8), 16);
+    return this.mapToEntity(inventory);
   }
 
-  async delete(id: number): Promise<number> {
-    const inventories = await this.prisma.inventory.findMany();
-    const inventory = inventories[id - 1];
+  async delete(userUuid: string): Promise<number> {
+    const inventory = await this.prisma.inventory.findUnique({
+      where: { userId: userUuid },
+    });
     if (!inventory) return 0;
     await this.prisma.inventory.delete({ where: { id: inventory.id } });
     return 1;

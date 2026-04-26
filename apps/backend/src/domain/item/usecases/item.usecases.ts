@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ItemRepository } from '../../../data/repository/item.repository';
 import { InventoryRepository } from '../../../data/repository/inventory.repository';
 import { ItemAddRequestDTO } from '../dto/item.add.request.dto';
 import { ItemUpdateRequestDTO } from '../dto/item.update.request.dto';
+import { ItemResponseDTO } from '../dto/item.response.dto';
 import { IItemUseCase } from '../interfaces/iitem.usecase';
 import { Item } from '../item';
 
@@ -13,11 +14,11 @@ export class ItemUseCase implements IItemUseCase {
     private inventoryRepository: InventoryRepository,
   ) {}
 
-  async add(entity: ItemAddRequestDTO): Promise<number> {
+  async add(entity: ItemAddRequestDTO): Promise<ItemResponseDTO> {
     const inventory = await this.inventoryRepository.getByUserUUID(
       entity.inventory_uuid,
     );
-    if (!inventory) return 0;
+    if (!inventory) throw new NotFoundException('Inventory not found');
 
     const itemEntity: Omit<Item, 'id'> = {
       inventory_id: inventory.id,
@@ -27,20 +28,33 @@ export class ItemUseCase implements IItemUseCase {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    return this.itemRepository.add(itemEntity);
+    const item = await this.itemRepository.add(itemEntity);
+    return this.toResponseDTO(item);
   }
 
-  async delete(id: number): Promise<number> {
-    return this.itemRepository.delete(id);
+  async delete(id: number): Promise<boolean> {
+    const result = await this.itemRepository.delete(id);
+    return result > 0;
   }
 
-  async update(entity: ItemUpdateRequestDTO): Promise<number> {
+  async update(entity: ItemUpdateRequestDTO): Promise<ItemResponseDTO> {
     const updatedEntity: Partial<Item> = {
       name: entity.name,
       quantity: entity.quantity,
       quantity_unit: entity.quantity_unit,
       updatedAt: new Date(),
     };
-    return this.itemRepository.update(entity.id, updatedEntity);
+    await this.itemRepository.update(entity.id, updatedEntity);
+    const item = await this.itemRepository.getById(entity.id);
+    return this.toResponseDTO(item!);
+  }
+
+  private toResponseDTO(item: Item): ItemResponseDTO {
+    return {
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      quantityUnit: item.quantity_unit,
+    };
   }
 }

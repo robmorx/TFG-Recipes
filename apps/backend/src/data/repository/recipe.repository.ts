@@ -25,7 +25,14 @@ export class RecipeRepository implements IRecipeRepository {
     return recipes.map((r) => this.mapToEntity(r));
   }
 
-  async add(entity: Omit<Recipe, 'id'>): Promise<string> {
+  async getUserByInternalId(id: number): Promise<{ user_uuid: string } | null> {
+    const users = await this.prisma.user.findMany();
+    const user = users[id - 1];
+    if (!user) return null;
+    return { user_uuid: user.id };
+  }
+
+  async add(entity: Omit<Recipe, 'id'>): Promise<Recipe> {
     const recipe = await this.prisma.recipe.create({
       data: {
         name: entity.name,
@@ -35,7 +42,7 @@ export class RecipeRepository implements IRecipeRepository {
         userId: entity.user_uuid,
       },
     });
-    return recipe.id;
+    return this.mapToEntity(recipe);
   }
 
   async delete(uuid: string): Promise<number> {

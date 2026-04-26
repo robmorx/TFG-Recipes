@@ -14,10 +14,10 @@ export class ItemRepository implements IItemRepository {
     return this.mapToEntity(item);
   }
 
-  async add(entity: Omit<Item, 'id'>): Promise<number> {
+  async add(entity: Omit<Item, 'id'>): Promise<Item> {
     const inventories = await this.prisma.inventory.findMany();
     const inventory = inventories[entity.inventory_id - 1];
-    if (!inventory) return 0;
+    if (!inventory) throw new Error('Inventory not found');
 
     const item = await this.prisma.item.create({
       data: {
@@ -27,7 +27,7 @@ export class ItemRepository implements IItemRepository {
         quantityUnit: entity.quantity_unit,
       },
     });
-    return parseInt(item.id.replace(/-/g, '').slice(0, 8), 16);
+    return this.mapToEntity(item);
   }
 
   async delete(id: number): Promise<number> {

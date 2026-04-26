@@ -4,5 +4,5 @@ export class InventoryResponseDTO {
   inventory_uuid: string;
   user_uuid: string;
   items: ItemResponseDTO[];
-  atcreated: Date;
+  createdAt: Date;
 }
