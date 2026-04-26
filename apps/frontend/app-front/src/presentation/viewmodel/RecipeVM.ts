@@ -7,27 +7,30 @@ import { TYPES } from '../../core/TYPES';
 
 export const useRecipeVM = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const recipeUseCase = container.get<IRecipeUseCase>(TYPES.IRecipeUseCase);
 
-  const loadRecipes = () => {
-    const data = recipeUseCase.get();
+  const loadRecipes = async () => {
+    setIsLoading(true);
+    const data = await recipeUseCase.get();
     setRecipes(data);
+    setIsLoading(false);
   };
 
   useEffect(() => {
     loadRecipes();
   }, []);
 
-  const addRecipe = (request: RecipeCreateRequestDTO) => {
-    recipeUseCase.post(request);
-    loadRecipes();
+  const addRecipe = async (request: RecipeCreateRequestDTO) => {
+    await recipeUseCase.post(request);
+    await loadRecipes();
   };
 
-  const deleteRecipe = (id: string) => {
-    recipeUseCase.delete(id);
-    loadRecipes();
+  const deleteRecipe = async (id: string) => {
+    await recipeUseCase.delete(id);
+    await loadRecipes();
   };
 
-  return { recipes, loadRecipes, addRecipe, deleteRecipe };
+  return { recipes, isLoading, loadRecipes, addRecipe, deleteRecipe };
 };

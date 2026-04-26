@@ -5,6 +5,6 @@ export interface Inventory {
   inventory_uuid?: string;
   user_uuid?: string;
   items: Item[];
-  atcreated?: Date;
-  atmodified?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

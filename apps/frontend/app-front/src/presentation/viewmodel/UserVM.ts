@@ -5,14 +5,14 @@ import { container } from '../../core/container';
 import { TYPES } from '../../core/TYPES';
 
 export const useUserVM = () => {
-  const [user, setUser] = useState<User | undefined>(undefined);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const userUseCase = container.get<IUserUseCase>(TYPES.IUserUseCase);
 
-  const loadUser = () => {
+  const loadUser = async () => {
     setIsLoading(true);
-    const data = userUseCase.get();
+    const data = await userUseCase.get();
     setUser(data);
     setIsLoading(false);
   };
@@ -21,9 +21,9 @@ export const useUserVM = () => {
     loadUser();
   }, []);
 
-  const registerUser = (user: User) => {
-    userUseCase.post(user);
-    loadUser();
+  const registerUser = async (user: { name: string; email: string; password: string }) => {
+    await userUseCase.post(user);
+    await loadUser();
   };
 
   return { user, isLoading, loadUser, registerUser };

@@ -9,8 +9,9 @@ export interface Item {
   id: string;
   inventory_id?: string;
   name: string;
-  quantity?: number;
+  quantity: number;
+  quantityUnit: string;
   quantity_unit?: QuantityUnit;
-  atcreated?: Date;
-  atmodified?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

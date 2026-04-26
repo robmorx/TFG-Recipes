@@ -12,6 +12,6 @@ export interface Recipe {
   ingredients: string[];
   steps: string[];
   type?: RecipeType;
-  atcreated?: Date;
-  atmodified?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

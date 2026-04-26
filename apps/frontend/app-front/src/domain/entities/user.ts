@@ -4,6 +4,6 @@ export interface User {
   name: string;
   email: string;
   password?: string;
-  atcreated?: Date;
-  atmodified?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

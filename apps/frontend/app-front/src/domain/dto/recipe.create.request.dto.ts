@@ -1,7 +1,7 @@
 import { RecipeType } from '../entities/recipe';
 
 export interface RecipeCreateRequestDTO {
-  quantity: number;
+  prompt: string;
   type: RecipeType;
-  ingredients: string[];
+  user_uuid: string;
 }

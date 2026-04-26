@@ -1,8 +1,8 @@
 import { Item } from '../entities/item';
 
 export interface IItemUseCase {
-  get(): Item[];
-  post(item: Item): void;
-  update(item: Item): void;
-  delete(id: string): void;
+  get(): Promise<Item[]>;
+  post(item: { inventory_uuid: string; name: string; quantity: number; quantity_unit: string }): Promise<Item>;
+  update(item: Item): Promise<Item>;
+  delete(id: string): Promise<boolean>;
 }

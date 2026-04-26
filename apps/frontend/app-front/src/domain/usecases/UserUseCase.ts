@@ -6,19 +6,19 @@ import { TYPES } from '../../core/TYPES';
 
 @injectable()
 export class UserUseCase implements IUserUseCase {
-  private userRepository: IUserRepository
-    constructor(
-        @inject(TYPES.IUserRepository)
-        userRepository: IUserRepository
-      ) {
-        this.userRepository = userRepository
-      }
+  private userRepository: IUserRepository;
+  constructor(
+      @inject(TYPES.IUserRepository)
+      userRepository: IUserRepository
+    ) {
+      this.userRepository = userRepository;
+    }
 
-  get(): User | undefined {
+  async get(): Promise<User | null> {
     return this.userRepository.get();
   }
 
-  post(user: User): void {
-    this.userRepository.post(user);
+  async post(user: { name: string; email: string; password: string }): Promise<User> {
+    return this.userRepository.post(user);
   }
 }

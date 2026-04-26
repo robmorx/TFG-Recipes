@@ -10,9 +10,9 @@ export const useItemVM = () => {
 
   const itemUseCase = container.get<IItemUseCase>(TYPES.IItemUseCase);
 
-  const loadItems = () => {
+  const loadItems = async () => {
     setIsLoading(true);
-    const data = itemUseCase.get();
+    const data = await itemUseCase.get();
     setItems(data);
     setIsLoading(false);
   };
@@ -21,19 +21,19 @@ export const useItemVM = () => {
     loadItems();
   }, []);
 
-  const addItem = (item: Item) => {
-    itemUseCase.post(item);
-    loadItems();
+  const addItem = async (item: { inventory_uuid: string; name: string; quantity: number; quantity_unit: string }) => {
+    await itemUseCase.post(item);
+    await loadItems();
   };
 
-  const editItem = (item: Item) => {
-    itemUseCase.update(item);
-    loadItems();
+  const editItem = async (item: Item) => {
+    await itemUseCase.update(item);
+    await loadItems();
   };
 
-  const removeItem = (id: string) => {
-    itemUseCase.delete(id);
-    loadItems();
+  const removeItem = async (id: string) => {
+    await itemUseCase.delete(id);
+    await loadItems();
   };
 
   return { items, isLoading, loadItems, addItem, editItem, removeItem };

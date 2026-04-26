@@ -7,27 +7,31 @@ import { TYPES } from '../../core/TYPES';
 
 @injectable()
 export class RecipeUseCase implements IRecipeUseCase {
-  private recipeRepository: IRecipeRepository
-    constructor(
-        @inject(TYPES.IRecipeRepository)
-        recipeRepository: IRecipeRepository
-      ) {
-        this.recipeRepository = recipeRepository
-      }
+  private recipeRepository: IRecipeRepository;
+  constructor(
+      @inject(TYPES.IRecipeRepository)
+      recipeRepository: IRecipeRepository
+    ) {
+      this.recipeRepository = recipeRepository;
+    }
 
-  get(): Recipe[] {
+  async get(): Promise<Recipe[]> {
     return this.recipeRepository.get();
   }
 
-  getById(id: string): Recipe | undefined {
+  async getById(id: string): Promise<Recipe | null> {
     return this.recipeRepository.getById(id);
   }
 
-  post(request: RecipeCreateRequestDTO): Recipe {
+  async post(request: RecipeCreateRequestDTO): Promise<Recipe> {
     return this.recipeRepository.post(request);
   }
 
-  delete(id: string): void {
-    this.recipeRepository.delete(id);
+  async delete(id: string): Promise<boolean> {
+    return this.recipeRepository.delete(id);
+  }
+
+  async getByUserId(userId: string): Promise<Recipe[]> {
+    return this.recipeRepository.getByUserId(userId);
   }
 }
