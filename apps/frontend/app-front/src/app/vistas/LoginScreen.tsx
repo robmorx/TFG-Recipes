@@ -5,64 +5,82 @@ import {
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 
-const COLORS = {
-  background: '#F5F0E8', card: '#FDFAF4', primary: '#3A6EA5',
-  text: '#1C1C1E', textMuted: '#8A8A8E', border: '#E0D9CC', inputBg: '#EFECE4',
+const C = {
+  bg: '#F5F2EB',
+  card: '#FFFFFF',
+  primary: '#6B8E6B',
+  secondary: '#A4C3A2',
+  text: '#3D3D3D',
+  muted: '#8B8B8B',
+  border: '#E0DCD4',
+  inputBg: '#F8F6F2',
+  accent: '#D4A574',
 };
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = () => {
-    // TODO: call UserUseCase.post() then navigate
-    router.replace('/vistas/HomeScreen');
+    if (!email.trim() || !password.trim()) return;
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      router.replace('/vistas/HomeScreen');
+    }, 500);
   };
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.inner}>
+  const canLogin = email.trim().length > 0 && password.trim().length > 0;
 
-        <View style={styles.brandSection}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoEmoji}>🍽️</Text>
-          </View>
-          <Text style={styles.appName}>RecetaIA</Text>
-          <Text style={styles.tagline}>Tu cocina, potenciada con IA</Text>
+  return (
+    <View style={s.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={s.inner}
+      >
+        <View style={s.logoSection}>
+          <Text style={s.logoIcon}>🥗</Text>
+          <Text style={s.logoTitle}>Mi Cocina</Text>
+          <Text style={s.logoSubtitle}>Gestiona tus recetas</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Iniciar sesión</Text>
+        <View style={s.card}>
+          <Text style={s.title}>Bienvenido</Text>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Usuario</Text>
+          <View style={s.field}>
+            <Text style={s.label}>Usuario</Text>
             <TextInput
-              style={styles.input}
-              placeholder="correo@ejemplo.com"
-              placeholderTextColor={COLORS.textMuted}
+              style={s.input}
+              placeholder="Ingresa tu usuario"
+              placeholderTextColor={C.muted}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
-              keyboardType="email-address"
             />
           </View>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Contraseña</Text>
+          <View style={s.field}>
+            <Text style={s.label}>Contraseña</Text>
             <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor={COLORS.textMuted}
+              style={s.input}
+              placeholder="Ingresa tu contraseña"
+              placeholderTextColor={C.muted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
             />
           </View>
 
-          <TouchableOpacity style={styles.btn} onPress={handleLogin} activeOpacity={0.85}>
-            <Text style={styles.btnText}>Entrar</Text>
+          <TouchableOpacity
+            style={[s.btn, !canLogin && s.btnDisabled]}
+            onPress={handleLogin}
+            activeOpacity={0.85}
+            disabled={!canLogin || isLoading}
+          >
+            <Text style={s.btnText}>{isLoading ? 'Entrando...' : 'Entrar'}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -70,38 +88,46 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
-  brandSection: { alignItems: 'center', marginBottom: 36 },
-  logoCircle: {
-    width: 72, height: 72, borderRadius: 36, backgroundColor: COLORS.primary,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
-  },
-  logoEmoji: { fontSize: 32 },
-  appName: { fontSize: 30, fontWeight: '800', color: COLORS.text, letterSpacing: -0.5 },
-  tagline: { fontSize: 14, color: COLORS.textMuted, marginTop: 4 },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.bg },
+  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
+  logoSection: { alignItems: 'center', marginBottom: 32 },
+  logoIcon: { fontSize: 56, marginBottom: 12 },
+  logoTitle: { fontSize: 26, fontWeight: '700', color: C.text },
+  logoSubtitle: { fontSize: 14, color: C.muted, marginTop: 4 },
   card: {
-    backgroundColor: COLORS.card, borderRadius: 20, padding: 28,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08, shadowRadius: 16, elevation: 4,
-    borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: C.card,
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  cardTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 24 },
-  fieldGroup: { marginBottom: 18 },
-  label: { fontSize: 13, fontWeight: '600', color: COLORS.text, marginBottom: 7 },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: C.text,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  field: { marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 6 },
   input: {
-    backgroundColor: COLORS.inputBg, borderRadius: 12,
-    paddingHorizontal: 16, paddingVertical: 14,
-    fontSize: 15, color: COLORS.text, borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: C.inputBg,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: C.text,
+    borderWidth: 1,
+    borderColor: C.border,
   },
   btn: {
-    backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 16,
-    alignItems: 'center', marginTop: 8,
-    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
+    backgroundColor: C.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 8,
   },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  btnDisabled: { backgroundColor: C.secondary, opacity: 0.6 },
+  btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });

@@ -1,47 +1,44 @@
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  SafeAreaView, StatusBar, LayoutAnimation, Platform, UIManager,
+  SafeAreaView, StatusBar,
 } from 'react-native';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useState, useEffect } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Recipe, RecipeType } from '../../domain/entities/recipe';
+import { container } from '../../core/container';
+import { IRecipeUseCase } from '../../domain/interfaces/IRecipeUseCase';
+import { TYPES } from '../../core/TYPES';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
-const COLORS = {
-  background: '#F5F0E8', card: '#FDFAF4', cardAlt: '#EDE8DF',
-  primary: '#3A6EA5', text: '#1C1C1E', textMuted: '#8A8A8E', border: '#E0D9CC',
+const C = {
+  bg: '#F5F2EB',
+  card: '#FFFFFF',
+  cardAlt: '#F0EDE5',
+  primary: '#6B8E6B',
+  secondary: '#A4C3A2',
+  text: '#3D3D3D',
+  muted: '#8B8B8B',
+  border: '#E0DCD4',
+  accent: '#D4A574',
 };
 
-// TODO: receive real recipe via route params (useLocalSearchParams)
-const MOCK_RECIPE = {
-  name: 'Pollo al limón',
-  ingredients: ['Pechuga de pollo', 'Limón', 'Ajo', 'Aceite de oliva', 'Romero', 'Sal y pimienta'],
-  steps: [
-    'Precalienta el horno a 200°C. Limpia y seca las pechugas con papel de cocina.',
-    'Mezcla el zumo de limón, ajo picado, aceite de oliva, sal, pimienta y romero.',
-    'Marina el pollo con la mezcla durante al menos 30 minutos en la nevera.',
-    'Coloca el pollo en una bandeja de horno y hornea 25-30 minutos.',
-    'Deja reposar 5 minutos antes de servir. Decora con rodajas de limón.',
-  ],
-};
+const RECIPE_TYPE_OPTIONS = [
+  { value: RecipeType.BREAKFAST, label: 'Desayuno', icon: '🌅' },
+  { value: RecipeType.LUNCH, label: 'Comida', icon: '☀️' },
+  { value: RecipeType.DINNER, label: 'Cena', icon: '🌙' },
+];
 
-type CollapsibleProps = { title: string; children: React.ReactNode; defaultOpen?: boolean };
+const RECIPE_ICONS = ['🍳', '🥗', '🍝', '🥘', '🍲', '🥙'];
 
-function CollapsibleSection({ title, children, defaultOpen = true }: CollapsibleProps) {
+type SectionProps = { title: string; children: React.ReactNode; defaultOpen?: boolean };
+
+function Section({ title, children, defaultOpen = true }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
-
-  const toggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setOpen(prev => !prev);
-  };
 
   return (
     <View style={sectionStyles.container}>
-      <TouchableOpacity style={sectionStyles.header} onPress={toggle} activeOpacity={0.75}>
+      <TouchableOpacity style={sectionStyles.header} onPress={() => setOpen(!open)} activeOpacity={0.7}>
         <Text style={sectionStyles.title}>{title}</Text>
-        <Text style={sectionStyles.chevron}>{open ? '∧' : '∨'}</Text>
+        <Text style={sectionStyles.chevron}>{open ? '−' : '+'}</Text>
       </TouchableOpacity>
       {open && <View style={sectionStyles.body}>{children}</View>}
     </View>
@@ -50,86 +47,139 @@ function CollapsibleSection({ title, children, defaultOpen = true }: Collapsible
 
 const sectionStyles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.card, borderRadius: 16,
-    borderWidth: 1, borderColor: COLORS.border, marginBottom: 14, overflow: 'hidden',
+    backgroundColor: C.card, borderRadius: 14,
+    borderWidth: 1, borderColor: C.border, marginBottom: 14, overflow: 'hidden',
   },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 16, paddingHorizontal: 18,
+    paddingVertical: 14, paddingHorizontal: 16,
   },
-  title: { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  chevron: { fontSize: 14, color: COLORS.textMuted, fontWeight: '600' },
-  body: { paddingHorizontal: 18, paddingBottom: 16 },
+  title: { fontSize: 15, fontWeight: '600', color: C.text },
+  chevron: { fontSize: 16, color: C.muted, fontWeight: '600' },
+  body: { paddingHorizontal: 16, paddingBottom: 14 },
 });
 
 export default function RecetaDetalleScreen() {
   const router = useRouter();
-  const recipe = MOCK_RECIPE; // TODO: useLocalSearchParams() to get recipe uuid and load
-  const [currentStep, setCurrentStep] = useState(0);
-  const totalSteps = recipe.steps.length;
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [recipe, setRecipe] = useState<Recipe | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadRecipe = async () => {
+      if (id) {
+        setLoading(true);
+        const recipeUseCase = container.get<IRecipeUseCase>(TYPES.IRecipeUseCase);
+        const found = await recipeUseCase.getById(id);
+        setRecipe(found ?? undefined);
+        setLoading(false);
+      }
+    };
+    loadRecipe();
+  }, [id]);
+
+  const getTypeInfo = (type?: RecipeType) => RECIPE_TYPE_OPTIONS.find(o => o.value === type);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={s.safe}>
+        <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+        <View style={s.container}>
+          <View style={s.navbar}>
+            <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.7}>
+              <Text style={s.backIcon}>‹</Text>
+            </TouchableOpacity>
+            <Text style={s.navTitle}>Cargando...</Text>
+            <View style={{ width: 36 }} />
+          </View>
+          <View style={s.loading}>
+            <Text style={s.loadingText}>Cargando receta</Text>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!recipe) {
+    return (
+      <SafeAreaView style={s.safe}>
+        <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+        <View style={s.container}>
+          <View style={s.navbar}>
+            <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.7}>
+              <Text style={s.backIcon}>‹</Text>
+            </TouchableOpacity>
+            <Text style={s.navTitle}>Detalle</Text>
+            <View style={{ width: 36 }} />
+          </View>
+          <View style={s.empty}>
+            <Text style={s.emptyIcon}>🔍</Text>
+            <Text style={s.emptyText}>Receta no encontrada</Text>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const typeInfo = getTypeInfo(recipe.type);
+  const iconIndex = parseInt(id?.slice(-1) || '0', 10) % RECIPE_ICONS.length;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      <View style={styles.container}>
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <View style={s.container}>
 
-        <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
-            <Text style={styles.backIcon}>‹</Text>
+        <View style={s.navbar}>
+          <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.7}>
+            <Text style={s.backIcon}>‹</Text>
           </TouchableOpacity>
-          <Text style={styles.navTitle} numberOfLines={1}>{recipe.name}</Text>
+          <Text style={s.navTitle} numberOfLines={1}>{recipe.name || 'Receta'}</Text>
           <View style={{ width: 36 }} />
         </View>
 
-        <View style={styles.hero}>
-          <Text style={styles.heroEmoji}>🍽️</Text>
-          <View style={styles.heroBadge}>
-            <Text style={styles.heroBadgeText}>{totalSteps} pasos</Text>
-          </View>
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-
-          <CollapsibleSection title="Detalles" defaultOpen>
-            {recipe.ingredients.map((ing, i) => (
-              <View key={i} style={styles.ingredientItem}>
-                <View style={styles.ingredientBullet} />
-                <Text style={styles.ingredientText}>{ing}</Text>
-              </View>
-            ))}
-          </CollapsibleSection>
-
-          <CollapsibleSection title="Proceso" defaultOpen={false}>
-            <Text style={styles.processText}>{recipe.steps[currentStep]}</Text>
-          </CollapsibleSection>
-
-          <View style={styles.stepNav}>
-            <TouchableOpacity
-              style={[styles.navBtn, styles.navBtnOutline, currentStep === 0 && styles.navBtnDisabled]}
-              onPress={() => setCurrentStep(prev => Math.max(prev - 1, 0))}
-              disabled={currentStep === 0}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.navBtnTextOutline, currentStep === 0 && styles.navBtnTextDim]}>← Atrás</Text>
-            </TouchableOpacity>
-
-            <View style={styles.stepIndicator}>
-              {recipe.steps.map((_, i) => (
-                <View key={i} style={[styles.stepDot, i === currentStep && styles.stepDotActive]} />
-              ))}
+          <View style={s.headerCard}>
+            <View style={[s.iconBox, { backgroundColor: C.secondary }]}>
+              <Text style={s.recipeIcon}>{RECIPE_ICONS[iconIndex]}</Text>
             </View>
-
-            <TouchableOpacity
-              style={[styles.navBtn, styles.navBtnFilled, currentStep === totalSteps - 1 && styles.navBtnDisabled]}
-              onPress={() => setCurrentStep(prev => Math.min(prev + 1, totalSteps - 1))}
-              disabled={currentStep === totalSteps - 1}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.navBtnTextFilled}>
-                {currentStep + 1 < totalSteps ? `Paso ${currentStep + 2} →` : '✓ Fin'}
-              </Text>
-            </TouchableOpacity>
+            <View style={s.headerInfo}>
+              <Text style={s.recipeName}>{recipe.name || 'Sin nombre'}</Text>
+              {typeInfo && (
+                <View style={s.typeTag}>
+                  <Text style={s.typeTagText}>{typeInfo.icon} {typeInfo.label}</Text>
+                </View>
+              )}
+            </View>
           </View>
+
+          <Section title="Ingredientes" defaultOpen>
+            {recipe.ingredients && recipe.ingredients.length > 0 ? (
+              recipe.ingredients.map((ing: string, i: number) => (
+                <View key={i} style={s.ingredientRow}>
+                  <View style={s.ingredientDot} />
+                  <Text style={s.ingredientText}>{ing}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={s.emptySection}>Sin ingredientes</Text>
+            )}
+          </Section>
+
+          <Section title="Preparación" defaultOpen>
+            {recipe.steps && recipe.steps.length > 0 ? (
+              recipe.steps.map((step: string, i: number) => (
+                <View key={i} style={s.stepRow}>
+                  <View style={s.stepNumber}>
+                    <Text style={s.stepNumberText}>{i + 1}</Text>
+                  </View>
+                  <Text style={s.stepText}>{step}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={s.emptySection}>Sin pasos definidos</Text>
+            )}
+          </Section>
 
         </ScrollView>
       </View>
@@ -137,51 +187,57 @@ export default function RecetaDetalleScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.background },
-  container: { flex: 1, paddingHorizontal: 24 },
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, paddingHorizontal: 20 },
   navbar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 16, paddingBottom: 14,
+    paddingTop: 12, paddingBottom: 12,
   },
   backBtn: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: COLORS.card,
-    borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
+    alignItems: 'center', justifyContent: 'center',
   },
-  backIcon: { fontSize: 22, color: COLORS.text, lineHeight: 26 },
-  navTitle: {
-    flex: 1, fontSize: 17, fontWeight: '700', color: COLORS.text,
-    textAlign: 'center', marginHorizontal: 8,
-  },
-  hero: {
-    alignItems: 'center', backgroundColor: COLORS.cardAlt, borderRadius: 18,
-    paddingVertical: 24, marginBottom: 20, borderWidth: 1, borderColor: COLORS.border,
-    position: 'relative',
-  },
-  heroEmoji: { fontSize: 56 },
-  heroBadge: {
-    position: 'absolute', top: 12, right: 12, backgroundColor: COLORS.primary,
-    borderRadius: 8, paddingVertical: 4, paddingHorizontal: 10,
-  },
-  heroBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  backIcon: { fontSize: 22, color: C.text, lineHeight: 26 },
+  navTitle: { flex: 1, fontSize: 17, fontWeight: '600', color: C.text, textAlign: 'center', marginHorizontal: 8 },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { fontSize: 14, color: C.muted },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  emptyText: { fontSize: 15, color: C.muted },
   scroll: { paddingBottom: 32 },
-  ingredientItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
-  ingredientBullet: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary, marginRight: 10 },
-  ingredientText: { fontSize: 14, color: COLORS.text, lineHeight: 20 },
-  processText: { fontSize: 14, color: COLORS.text, lineHeight: 22 },
-  stepNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-  navBtn: { borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, minWidth: 100, alignItems: 'center' },
-  navBtnOutline: { borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: COLORS.card },
-  navBtnFilled: {
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 8, elevation: 5,
+  headerCard: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: C.card, borderRadius: 16,
+    padding: 16, borderWidth: 1, borderColor: C.border,
+    marginBottom: 16,
   },
-  navBtnDisabled: { opacity: 0.35, shadowOpacity: 0, elevation: 0 },
-  navBtnTextOutline: { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  navBtnTextFilled: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  navBtnTextDim: { color: COLORS.textMuted },
-  stepIndicator: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  stepDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.border },
-  stepDotActive: { width: 18, borderRadius: 3, backgroundColor: COLORS.primary },
+  iconBox: {
+    width: 64, height: 64, borderRadius: 16,
+    alignItems: 'center', justifyContent: 'center', marginRight: 16,
+  },
+  recipeIcon: { fontSize: 32 },
+  headerInfo: { flex: 1 },
+  recipeName: { fontSize: 18, fontWeight: '600', color: C.text, marginBottom: 6 },
+  typeTag: {
+    backgroundColor: C.cardAlt, paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 12, alignSelf: 'flex-start',
+  },
+  typeTagText: { fontSize: 12, color: C.muted },
+  ingredientRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  ingredientDot: {
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: C.primary, marginRight: 12,
+  },
+  ingredientText: { fontSize: 14, color: C.text, flex: 1 },
+  stepRow: { flexDirection: 'row', marginBottom: 14 },
+  stepNumber: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center',
+    marginRight: 12, marginTop: 2,
+  },
+  stepNumberText: { fontSize: 12, color: '#fff', fontWeight: '600' },
+  stepText: { flex: 1, fontSize: 14, color: C.text, lineHeight: 20 },
+  emptySection: { fontSize: 14, color: C.muted, fontStyle: 'italic' },
 });

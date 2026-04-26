@@ -1,63 +1,95 @@
 import {
   View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar,
 } from 'react-native';
+import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import { useUserVM } from '../../presentation/viewmodel/UserVM';
 
-const COLORS = {
-  background: '#F5F0E8', card: '#FDFAF4', cardAlt: '#EDE8DF',
-  primary: '#3A6EA5', text: '#1C1C1E', textMuted: '#8A8A8E', border: '#E0D9CC',
+const C = {
+  bg: '#F5F2EB',
+  card: '#FFFFFF',
+  primary: '#6B8E6B',
+  secondary: '#A4C3A2',
+  text: '#3D3D3D',
+  muted: '#8B8B8B',
+  border: '#E0DCD4',
+  accent: '#D4A574',
 };
 
-type MenuItemProps = { icon: string; label: string; onPress: () => void };
+type MenuItemProps = {
+  icon: string;
+  label: string;
+  subtitle?: string;
+  onPress: () => void;
+};
 
-function MenuItem({ icon, label, onPress }: MenuItemProps) {
+function MenuItem({ icon, label, subtitle, onPress }: MenuItemProps) {
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.75}>
-      <View style={styles.menuIcon}>
-        <Text style={styles.menuEmoji}>{icon}</Text>
+    <TouchableOpacity style={s.menuItem} onPress={onPress} activeOpacity={0.7}>
+      <View style={s.menuIconBox}>
+        <Text style={s.menuEmoji}>{icon}</Text>
       </View>
-      <Text style={styles.menuLabel}>{label}</Text>
-      <Text style={styles.menuChevron}>›</Text>
+      <View style={s.menuText}>
+        <Text style={s.menuLabel}>{label}</Text>
+        {subtitle && <Text style={s.menuSubtitle}>{subtitle}</Text>}
+      </View>
+      <Text style={s.menuArrow}>›</Text>
     </TouchableOpacity>
   );
 }
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user, loadUser } = useUserVM();
+
+  useEffect(() => {
+    loadUser();
+  }, []);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      <View style={styles.container}>
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <View style={s.container}>
 
-        <View style={styles.header}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarIcon}>👤</Text>
+        <View style={s.header}>
+          <View style={s.avatar}>
+            <Text style={s.avatarIcon}>👩‍🍳</Text>
           </View>
-          <View style={styles.headerText}>
-            <Text style={styles.greeting}>Bienvenida,</Text>
-            <Text style={styles.userName}>Usuario</Text>
+          <View style={s.headerText}>
+            <Text style={s.greeting}>Hola!</Text>
+            <Text style={s.userName}>{user?.name || 'Usuario'}</Text>
           </View>
         </View>
 
-        <View style={styles.divider} />
-
-        <View style={styles.menuSection}>
-          <MenuItem icon="🗂️" label="Inventario" onPress={() => router.push('/vistas/InventarioScreen')} />
-          <MenuItem icon="📋" label="Recetas"    onPress={() => router.push('/vistas/RecetasScreen')} />
+        <View style={s.welcomeCard}>
+          <Text style={s.welcomeTitle}>¿Qué vas a cocinar hoy?</Text>
+          <Text style={s.welcomeSub}>Gestiona tu cocina fácilmente</Text>
         </View>
 
-        <View style={{ flex: 1 }} />
+        <View style={s.menuSection}>
+          <MenuItem
+            icon="🥕"
+            label="Inventario"
+            subtitle="Ver tus ingredientes"
+            onPress={() => router.push('/vistas/InventarioScreen')}
+          />
+          <MenuItem
+            icon="📖"
+            label="Mis Recetas"
+            subtitle="Explorar recetas"
+            onPress={() => router.push('/vistas/RecetasScreen')}
+          />
+        </View>
 
-        <View style={styles.fabContainer}>
+        <View style={s.fabWrapper}>
           <TouchableOpacity
-            style={styles.fab}
-            onPress={() => router.push('/vistas/GenerarRecetaScreen')}
-            activeOpacity={0.85}
+            style={s.fab}
+            onPress={() => router.push('/vistas/CrearRecetaScreen')}
+            activeOpacity={0.8}
           >
-            <Text style={styles.fabIcon}>＋</Text>
+            <Text style={s.fabIcon}>+</Text>
           </TouchableOpacity>
-          <Text style={styles.fabLabel}>Crear Receta</Text>
+          <Text style={s.fabLabel}>Nueva Receta</Text>
         </View>
 
       </View>
@@ -65,42 +97,75 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.background },
-  container: { flex: 1, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 28 },
-  avatarCircle: {
-    width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.cardAlt,
-    borderWidth: 2, borderColor: COLORS.border, alignItems: 'center',
-    justifyContent: 'center', marginRight: 14,
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 48 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    gap: 14,
   },
-  avatarIcon: { fontSize: 26 },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: C.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarIcon: { fontSize: 24 },
   headerText: { flex: 1 },
-  greeting: { fontSize: 14, color: COLORS.textMuted, fontWeight: '400' },
-  userName: { fontSize: 24, fontWeight: '800', color: COLORS.text, letterSpacing: -0.3 },
-  divider: { height: 1, backgroundColor: COLORS.border, marginBottom: 24 },
+  greeting: { fontSize: 14, color: C.muted },
+  userName: { fontSize: 20, fontWeight: '600', color: C.text },
+  welcomeCard: {
+    backgroundColor: C.primary,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+  },
+  welcomeTitle: { fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 4 },
+  welcomeSub: { fontSize: 13, color: 'rgba(255,255,255,0.8)' },
   menuSection: { gap: 12 },
   menuItem: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card,
-    borderRadius: 16, paddingVertical: 18, paddingHorizontal: 20,
-    borderWidth: 1, borderColor: COLORS.border,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.card,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  menuIcon: {
-    width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.cardAlt,
-    alignItems: 'center', justifyContent: 'center', marginRight: 14,
+  menuIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F8F6F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
   },
-  menuEmoji: { fontSize: 20 },
-  menuLabel: { flex: 1, fontSize: 17, fontWeight: '600', color: COLORS.text },
-  menuChevron: { fontSize: 22, color: COLORS.textMuted, fontWeight: '300' },
-  fabContainer: { alignItems: 'center' },
+  menuEmoji: { fontSize: 22 },
+  menuText: { flex: 1 },
+  menuLabel: { fontSize: 16, fontWeight: '600', color: C.text },
+  menuSubtitle: { fontSize: 12, color: C.muted, marginTop: 2 },
+  menuArrow: { fontSize: 20, color: C.muted },
+  fabWrapper: {
+    position: 'absolute',
+    bottom: 32,
+    alignSelf: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
   fab: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: COLORS.primary,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4, shadowRadius: 14, elevation: 10, marginBottom: 10,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: C.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  fabIcon: { fontSize: 28, color: '#fff', fontWeight: '300', lineHeight: 32 },
-  fabLabel: { fontSize: 13, color: COLORS.textMuted, fontWeight: '500' },
+  fabIcon: { fontSize: 28, color: '#fff', fontWeight: '300' },
+  fabLabel: { fontSize: 12, color: C.muted, fontWeight: '500' },
 });

@@ -1,92 +1,141 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, FlatList, SafeAreaView, StatusBar,
+  View, Text, TouchableOpacity, StyleSheet,
+  FlatList, SafeAreaView, StatusBar, ScrollView,
 } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useRecipeVM } from '../../presentation/viewmodel/RecipeVM';
+import { Recipe, RecipeType } from '../../domain/entities/recipe';
 
-const COLORS = {
-  background: '#F5F0E8', card: '#FDFAF4', cardAlt: '#EDE8DF',
-  primary: '#3A6EA5', text: '#1C1C1E', textMuted: '#8A8A8E',
-  border: '#E0D9CC', danger: '#D94F4F', selected: '#EAF1FA',
+const C = {
+  bg: '#F5F2EB',
+  card: '#FFFFFF',
+  cardAlt: '#F0EDE5',
+  primary: '#6B8E6B',
+  secondary: '#A4C3A2',
+  text: '#3D3D3D',
+  muted: '#8B8B8B',
+  border: '#E0DCD4',
+  danger: '#C97070',
+  accent: '#D4A574',
 };
 
-type Recipe = { id: string; name: string; emoji?: string };
-
-const MOCK_RECIPES: Recipe[] = [
-  { id: '1', name: 'Pollo al limón', emoji: '🍋' },
-  { id: '2', name: 'Ensalada mediterránea', emoji: '🥗' },
-  { id: '3', name: 'Pasta con verduras', emoji: '🍝' },
+const RECIPE_TYPE_OPTIONS = [
+  { value: RecipeType.BREAKFAST, label: 'Desayuno', icon: '🌅' },
+  { value: RecipeType.LUNCH, label: 'Comida', icon: '☀️' },
+  { value: RecipeType.DINNER, label: 'Cena', icon: '🌙' },
 ];
+
+const RECIPE_ICONS = ['🍳', '🥗', '🍝', '🥘', '🍲', '🥙'];
 
 export default function RecetasScreen() {
   const router = useRouter();
-  const [recipes, setRecipes] = useState<Recipe[]>(MOCK_RECIPES);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { recipes, loadRecipes, deleteRecipe, isLoading } = useRecipeVM();
+  const [filterType, setFilterType] = useState<RecipeType | 'ALL'>('ALL');
+
+  useEffect(() => {
+    loadRecipes();
+  }, []);
+
+  const filteredRecipes = filterType === 'ALL' 
+    ? recipes 
+    : recipes.filter(r => r.type === filterType);
 
   const handleDelete = (id: string) => {
-    setRecipes(prev => prev.filter(r => r.id !== id));
-    if (selectedId === id) setSelectedId(null);
+    deleteRecipe(id);
   };
 
   const handleSelect = (recipe: Recipe) => {
-    setSelectedId(recipe.id);
-    router.push('/vistas/RecetaDetalleScreen');
+    router.push(`/vistas/RecetaDetalleScreen?id=${recipe.id}`);
   };
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      <View style={styles.container}>
+  const getRecipeIcon = (index: number) => RECIPE_ICONS[index % RECIPE_ICONS.length];
 
-        <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
-            <Text style={styles.backIcon}>‹</Text>
+  return (
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <View style={s.container}>
+
+        <View style={s.navbar}>
+          <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.7}>
+            <Text style={s.backIcon}>‹</Text>
           </TouchableOpacity>
-          <Text style={styles.navTitle}>Recetas</Text>
+          <Text style={s.navTitle}>Mis Recetas</Text>
           <View style={{ width: 36 }} />
         </View>
 
-        <Text style={styles.subtitle}>
-          {recipes.length} {recipes.length === 1 ? 'receta guardada' : 'recetas guardadas'}
-        </Text>
+        <View style={s.filterSection}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterScroll}>
+            <TouchableOpacity
+              style={[s.filterBtn, filterType === 'ALL' && s.filterBtnActive]}
+              onPress={() => setFilterType('ALL')}
+            >
+              <Text style={[s.filterBtnText, filterType === 'ALL' && s.filterBtnTextActive]}>Todas</Text>
+            </TouchableOpacity>
+            {RECIPE_TYPE_OPTIONS.map(opt => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[s.filterBtn, filterType === opt.value && s.filterBtnActive]}
+                onPress={() => setFilterType(opt.value)}
+              >
+                <Text style={s.filterIcon}>{opt.icon}</Text>
+                <Text style={[s.filterBtnText, filterType === opt.value && s.filterBtnTextActive]}>{opt.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
-        {recipes.length > 0 ? (
+        <View style={s.statsRow}>
+          <Text style={s.statsText}>
+            {filteredRecipes.length} {filteredRecipes.length === 1 ? 'receta' : 'recetas'}
+          </Text>
+        </View>
+
+        {isLoading ? (
+          <View style={s.loading}>
+            <Text style={s.loadingText}>Cargando recetas...</Text>
+          </View>
+        ) : filteredRecipes.length > 0 ? (
           <FlatList
-            data={recipes}
+            data={filteredRecipes}
             keyExtractor={item => item.id}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={s.list}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const isSelected = selectedId === item.id;
+            renderItem={({ item, index }) => {
+              const typeLabel = getTypeLabel(item.type);
               return (
                 <TouchableOpacity
-                  style={[styles.recipeRow, isSelected && styles.recipeRowSelected]}
+                  style={s.row}
                   onPress={() => handleSelect(item)}
-                  activeOpacity={0.75}
+                  activeOpacity={0.7}
                 >
-                  <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-                    {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                  <View style={[s.iconBox, { backgroundColor: C.secondary }]}>
+                    <Text style={s.recipeIcon}>{getRecipeIcon(index)}</Text>
                   </View>
-                  <View style={styles.recipeImagePlaceholder}>
-                    <Text style={styles.recipeEmoji}>{item.emoji ?? '🍴'}</Text>
+                  <View style={s.recipeInfo}>
+                    <Text style={s.name} numberOfLines={1}>{item.name || 'Sin nombre'}</Text>
+                    {item.type && (
+                      <View style={s.typeTag}>
+                        <Text style={s.typeTagText}>{typeLabel}</Text>
+                      </View>
+                    )}
                   </View>
-                  <Text style={styles.recipeName}>{item.name}</Text>
                   <TouchableOpacity
-                    style={styles.deleteBtn}
+                    style={s.deleteBtn}
                     onPress={() => handleDelete(item.id)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Text style={styles.deleteIcon}>✕</Text>
+                    <Text style={s.deleteIcon}>✕</Text>
                   </TouchableOpacity>
                 </TouchableOpacity>
               );
             }}
           />
         ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>📋</Text>
-            <Text style={styles.emptyText}>Sin recetas guardadas.</Text>
-            <Text style={styles.emptySubtext}>Genera una desde el inicio.</Text>
+          <View style={s.empty}>
+            <Text style={s.emptyIcon}>📖</Text>
+            <Text style={s.emptyText}>Sin recetas</Text>
+            <Text style={s.emptySub}>Toca + en inicio para crear una</Text>
           </View>
         )}
 
@@ -95,47 +144,70 @@ export default function RecetasScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.background },
-  container: { flex: 1, paddingHorizontal: 24 },
+function getTypeLabel(type?: RecipeType): string {
+  if (!type) return '';
+  const opt = RECIPE_TYPE_OPTIONS.find(o => o.value === type);
+  return opt ? opt.label : '';
+}
+
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, paddingHorizontal: 20 },
   navbar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 16, paddingBottom: 12,
+    paddingTop: 12, paddingBottom: 16,
   },
   backBtn: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: COLORS.card,
-    borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
+    alignItems: 'center', justifyContent: 'center',
   },
-  backIcon: { fontSize: 22, color: COLORS.text, lineHeight: 26 },
-  navTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  subtitle: { fontSize: 13, color: COLORS.textMuted, marginBottom: 16, fontWeight: '500' },
-  listContent: { gap: 10, paddingBottom: 32 },
-  recipeRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card,
-    borderRadius: 14, padding: 14, borderWidth: 1.5, borderColor: COLORS.border,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+  backIcon: { fontSize: 22, color: C.text, lineHeight: 26 },
+  navTitle: { fontSize: 18, fontWeight: '600', color: C.text },
+  filterSection: { marginBottom: 12 },
+  filterScroll: { gap: 8 },
+  filterBtn: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
+    gap: 4,
   },
-  recipeRowSelected: { backgroundColor: COLORS.selected, borderColor: COLORS.primary },
-  checkbox: {
-    width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: COLORS.border,
-    alignItems: 'center', justifyContent: 'center', marginRight: 12,
+  filterBtnActive: { backgroundColor: C.primary, borderColor: C.primary },
+  filterIcon: { fontSize: 14 },
+  filterBtnText: { fontSize: 13, color: C.muted, fontWeight: '500' },
+  filterBtnTextActive: { color: '#fff' },
+  statsRow: { marginBottom: 12 },
+  statsText: { fontSize: 13, color: C.muted },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { fontSize: 14, color: C.muted },
+  list: { gap: 10, paddingBottom: 24 },
+  row: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: C.card, borderRadius: 14,
+    paddingVertical: 14, paddingHorizontal: 14,
+    borderWidth: 1, borderColor: C.border,
   },
-  checkboxSelected: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  checkmark: { color: '#fff', fontSize: 12, fontWeight: '800' },
-  recipeImagePlaceholder: {
-    width: 44, height: 44, borderRadius: 10, backgroundColor: COLORS.cardAlt,
+  iconBox: {
+    width: 48, height: 48, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
-  recipeEmoji: { fontSize: 24 },
-  recipeName: { flex: 1, fontSize: 15, fontWeight: '600', color: COLORS.text },
+  recipeIcon: { fontSize: 24 },
+  recipeInfo: { flex: 1 },
+  name: { fontSize: 15, fontWeight: '600', color: C.text },
+  typeTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: C.cardAlt,
+    paddingHorizontal: 8, paddingVertical: 2,
+    borderRadius: 8, marginTop: 4,
+  },
+  typeTagText: { fontSize: 11, color: C.muted },
   deleteBtn: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: COLORS.cardAlt, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.cardAlt, alignItems: 'center', justifyContent: 'center',
   },
-  deleteIcon: { fontSize: 10, color: COLORS.danger, fontWeight: '700' },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 },
-  emptyIcon: { fontSize: 48, marginBottom: 14 },
-  emptyText: { fontSize: 17, fontWeight: '600', color: COLORS.text, marginBottom: 6 },
-  emptySubtext: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center' },
+  deleteIcon: { fontSize: 10, color: C.danger, fontWeight: '700' },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 },
+  emptyIcon: { fontSize: 56, marginBottom: 14 },
+  emptyText: { fontSize: 17, fontWeight: '600', color: C.text, marginBottom: 6 },
+  emptySub: { fontSize: 13, color: C.muted, textAlign: 'center' },
 });
