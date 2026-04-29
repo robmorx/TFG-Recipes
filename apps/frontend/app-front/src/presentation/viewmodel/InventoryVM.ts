@@ -3,33 +3,45 @@ import { Inventory } from '../../domain/entities/inventory';
 import { IInventoryUseCase } from '../../domain/interfaces/IInventoryUseCase';
 import { container } from '../../core/container';
 import { TYPES } from '../../core/TYPES';
+import { useAuth } from '../context/AuthContext';
 
 export const useInventoryVM = () => {
   const [inventory, setInventory] = useState<Inventory | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   const inventoryUseCase = container.get<IInventoryUseCase>(TYPES.IInventoryUseCase);
 
-  const loadInventory = async (user_uuid: string) => {
+  console.log('[DEBUG] useInventoryVM - user from useAuth:', user);
+
+  const loadInventory = async () => {
+    if (!user?.user_uuid) {
+      console.log('[DEBUG] useInventoryVM - no user_uuid, skipping');
+      return;
+    }
+    console.log('[DEBUG] InventoryVM.loadInventory called with uuid:', user.user_uuid);
     setIsLoading(true);
-    const data = await inventoryUseCase.getByUserUUID(user_uuid);
-    setInventory(data);
-    setIsLoading(false);
+    try {
+      const data = await inventoryUseCase.getByUserUUID(user.user_uuid);
+      console.log('[DEBUG] InventoryVM.loadInventory - API response:', data);
+      setInventory(data);
+    } catch (error) {
+      console.error('[DEBUG] InventoryVM.loadInventory - Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadInventory('1');
-  }, []);
-
-  const deleteInventory = async (user_uuid: string) => {
-    await inventoryUseCase.delete(user_uuid);
-    setInventory(null);
-  };
+    console.log('[DEBUG] InventoryVM useEffect triggered, user:', user?.user_uuid);
+    if (user?.user_uuid) {
+      loadInventory();
+    }
+  }, [user?.user_uuid]);
 
   return { 
     inventory, 
     isLoading, 
-    loadInventory, 
-    deleteInventory,
+    loadInventory,
   };
 };

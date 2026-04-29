@@ -21,4 +21,8 @@ export class UserUseCase implements IUserUseCase {
   async post(user: { name: string; email: string; password: string }): Promise<User> {
     return this.userRepository.post(user);
   }
+
+  async login(credentials: { email: string; password: string }): Promise<{ token: string; user: User }> {
+    return this.userRepository.login(credentials);
+  }
 }

@@ -3,46 +3,32 @@ import { User } from '../../domain/entities/user';
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { apiClient } from '../network/api-client';
 
-const USE_API = true;
-
 @injectable()
 export class UserRepository implements IUserRepository {
-  private mockUser: User | null = {
-    id: '1',
-    user_uuid: 'user-001',
-    name: 'Juan Pérez',
-    email: 'juan@example.com',
-  };
-
   async get(): Promise<User | null> {
-    if (USE_API) {
-      return apiClient.get<User>('/users');
-    }
-    return this.mockUser;
+    return apiClient.get<User>('/users');
   }
 
   async post(user: { name: string; email: string; password: string }): Promise<User> {
-    if (USE_API) {
-      const created = await apiClient.post<User>('/users/add', user);
-      this.mockUser = created;
-      apiClient.setToken('mock-token');
-      return created;
-    }
-    const newUser: User = {
-      id: Date.now().toString(),
-      user_uuid: `user-${Date.now()}`,
-      name: user.name,
-      email: user.email,
-    };
-    this.mockUser = newUser;
-    apiClient.setToken('mock-token');
-    return newUser;
+    const created = await apiClient.post<User>('/users/add', user);
+    return created;
   }
 
   async getByUUID(user_uuid: string): Promise<User | null> {
-    if (USE_API) {
-      return apiClient.get<User>(`/users/${user_uuid}`);
-    }
-    return this.mockUser;
+    return apiClient.get<User>(`/users/${user_uuid}`);
+  }
+
+  async login(credentials: { email: string; password: string }): Promise<{ token: string; user: User }> {
+    const response = await apiClient.post<{ access_token: string; user_uuid: string; name: string; email: string }>('/auth/login', credentials);
+    apiClient.setToken(response.access_token);
+    return {
+      token: response.access_token,
+      user: {
+        id: response.user_uuid,
+        user_uuid: response.user_uuid,
+        name: response.name,
+        email: response.email,
+      },
+    };
   }
 }

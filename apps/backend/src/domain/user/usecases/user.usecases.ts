@@ -32,6 +32,7 @@ export class UserUseCase implements IUserUseCase {
   }
 
   async add(entity: UserAddRequestDTO): Promise<UserResponseDTO> {
+    console.log('[DEBUG] UserUseCase.add called with:', entity.name, entity.email);
     const userEntity: Omit<User, 'id' | 'user_uuid'> = {
       name: entity.name,
       email: entity.email,
@@ -40,7 +41,9 @@ export class UserUseCase implements IUserUseCase {
       updatedAt: new Date(),
     };
     const userUuid = await this.userRepository.add(userEntity as any);
+    console.log('[DEBUG] Created user with UUID:', userUuid);
     await this.inventoryRepository.add({ user_uuid: userUuid });
+    console.log('[DEBUG] Created inventory for user:', userUuid);
     const user = await this.userRepository.getByUUID(userUuid);
     return this.toResponseDTO(user!);
   }

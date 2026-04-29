@@ -6,8 +6,8 @@ export enum QuantityUnit {
 }
 
 export interface Item {
-  id: number;
-  inventory_id: number;
+  id: string;
+  inventory_id: string;
   name: string;
   quantity: number;
   quantity_unit: QuantityUnit;

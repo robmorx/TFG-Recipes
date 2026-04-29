@@ -1,9 +1,10 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, StatusBar,
+  KeyboardAvoidingView, Platform, StatusBar, Alert,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useUserVM } from '../../presentation/viewmodel/UserVM';
 
 const C = {
   bg: '#F5F2EB',
@@ -19,17 +20,18 @@ const C = {
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login, isLoading } = useUserVM();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email.trim() || !password.trim()) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await login(email.trim(), password);
       router.replace('/vistas/HomeScreen');
-    }, 500);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Credenciales inválidas');
+    }
   };
 
   const canLogin = email.trim().length > 0 && password.trim().length > 0;

@@ -4,6 +4,6 @@ import { ItemResponseDTO } from '../dto/item.response.dto';
 
 export interface IItemUseCase {
   add(entity: ItemAddRequestDTO): Promise<ItemResponseDTO>;
-  delete(id: number): Promise<boolean>;
+  delete(id: string): Promise<boolean>;
   update(entity: ItemUpdateRequestDTO): Promise<ItemResponseDTO>;
 }

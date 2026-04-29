@@ -1,8 +1,8 @@
 import { Item } from '../item/item';
 
 export interface IItemRepository {
-  getById(id: number): Promise<Item | null>;
+  getById(id: string): Promise<Item | null>;
   add(entity: Omit<Item, 'id'>): Promise<Item>;
-  delete(id: number): Promise<number>;
-  update(id: number, entity: Partial<Item>): Promise<number>;
+  delete(id: string): Promise<number>;
+  update(id: string, entity: Partial<Item>): Promise<number>;
 }

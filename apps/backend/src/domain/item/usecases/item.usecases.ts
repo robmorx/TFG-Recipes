@@ -15,13 +15,15 @@ export class ItemUseCase implements IItemUseCase {
   ) {}
 
   async add(entity: ItemAddRequestDTO): Promise<ItemResponseDTO> {
+    console.log('[DEBUG] ItemUseCase.add called with inventory_uuid:', entity.inventory_uuid);
     const inventory = await this.inventoryRepository.getByUserUUID(
       entity.inventory_uuid,
     );
+    console.log('[DEBUG] Found inventory:', inventory);
     if (!inventory) throw new NotFoundException('Inventory not found');
 
     const itemEntity: Omit<Item, 'id'> = {
-      inventory_id: inventory.id,
+      inventory_id: inventory.inventory_uuid,
       name: entity.name,
       quantity: entity.quantity,
       quantity_unit: entity.quantity_unit,
@@ -32,7 +34,7 @@ export class ItemUseCase implements IItemUseCase {
     return this.toResponseDTO(item);
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const result = await this.itemRepository.delete(id);
     return result > 0;
   }

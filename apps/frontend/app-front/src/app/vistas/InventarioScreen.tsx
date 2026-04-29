@@ -1,12 +1,13 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   FlatList, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform,
-  ScrollView,
+  ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useInventoryVM } from '../../presentation/viewmodel/InventoryVM';
 import { useItemVM } from '../../presentation/viewmodel/ItemVM';
+import { useAuth } from '../../presentation/context/AuthContext';
 import { Item, QuantityUnit } from '../../domain/entities/item';
 
 const C = {
@@ -31,42 +32,52 @@ const QUANTITY_UNIT_OPTIONS = [
 
 export default function InventarioScreen() {
   const router = useRouter();
-  const { inventory, loadInventory, deleteInventory, isLoading } = useInventoryVM();
-  const { items: allItems, loadItems, addItem, removeItem } = useItemVM();
+  const { user } = useAuth();
+  console.log('[DEBUG] InventarioScreen - User from useAuth:', user);
+  console.log('[DEBUG] InventarioScreen - user_uuid:', user?.user_uuid);
+  
+  const { inventory, loadInventory, isLoading } = useInventoryVM();
+  const { addItem, removeItem } = useItemVM();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [quantityUnit, setQuantityUnit] = useState<QuantityUnit>(QuantityUnit.UNITS);
   const [filterUnit, setFilterUnit] = useState<QuantityUnit | 'ALL'>('ALL');
   const [showUnitPicker, setShowUnitPicker] = useState(false);
 
-  useEffect(() => {
-    loadInventory('1');
-    loadItems();
-  }, []);
-
-  const handleAdd = async () => {
+  const handleAddItem = async () => {
     const trimmed = name.trim();
-    if (!trimmed || !inventory?.inventory_uuid) return;
-    await addItem({
-      inventory_uuid: inventory.inventory_uuid,
-      name: trimmed,
-      quantity: parseInt(quantity) || 1,
-      quantity_unit: quantityUnit,
-    });
-    setName('');
-    setQuantity('');
-    setQuantityUnit(QuantityUnit.UNITS);
-    await loadItems();
+    if (!trimmed || !user?.user_uuid) {
+      Alert.alert('Error', 'Falta el nombre o el usuario no existe');
+      return;
+    }
+    try {
+      await addItem({
+        inventory_uuid: user.user_uuid,
+        name: trimmed,
+        quantity: parseInt(quantity) || 1,
+        quantity_unit: quantityUnit,
+      });
+      setName('');
+      setQuantity('');
+      setQuantityUnit(QuantityUnit.UNITS);
+      await loadInventory(user?.user_uuid || '');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo añadir el artículo');
+    }
   };
 
-  const items = inventory?.items || allItems;
+  const items = inventory?.items || [];
   const filteredItems = filterUnit === 'ALL' 
     ? items 
     : items.filter(item => (item.quantityUnit as string) === filterUnit);
 
-  const handleDelete = async (id: string) => {
-    await removeItem(id);
-    await loadItems();
+  const handleDeleteItem = async (id: string) => {
+    try {
+      await removeItem(id);
+      await loadInventory(user?.user_uuid || '');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo eliminar el artículo');
+    }
   };
 
   const selectedUnitLabel = QUANTITY_UNIT_OPTIONS.find(u => u.value === quantityUnit)?.label || 'Und';
@@ -147,7 +158,7 @@ export default function InventarioScreen() {
 
             <TouchableOpacity
               style={[s.addBtn, !name.trim() && s.addBtnDisabled]}
-              onPress={handleAdd}
+              onPress={handleAddItem}
               activeOpacity={0.85}
               disabled={!name.trim()}
             >
@@ -196,7 +207,7 @@ export default function InventarioScreen() {
                   </View>
                   <TouchableOpacity
                     style={s.deleteBtn}
-                    onPress={() => handleDelete(item.id)}
+                    onPress={() => handleDeleteItem(item.id)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Text style={s.deleteIcon}>✕</Text>

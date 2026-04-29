@@ -1,7 +1,6 @@
 import {
   View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar,
 } from 'react-native';
-import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
 
@@ -40,11 +39,7 @@ function MenuItem({ icon, label, subtitle, onPress }: MenuItemProps) {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, loadUser } = useUserVM();
-
-  useEffect(() => {
-    loadUser();
-  }, []);
+  const { user } = useUserVM();
 
   return (
     <SafeAreaView style={s.safe}>

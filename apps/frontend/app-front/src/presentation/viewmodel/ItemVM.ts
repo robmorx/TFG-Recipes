@@ -1,40 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Item } from '../../domain/entities/item';
 import { IItemUseCase } from '../../domain/interfaces/IItemUseCase';
 import { container } from '../../core/container';
 import { TYPES } from '../../core/TYPES';
 
 export const useItemVM = () => {
-  const [items, setItems] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const itemUseCase = container.get<IItemUseCase>(TYPES.IItemUseCase);
 
-  const loadItems = async () => {
-    setIsLoading(true);
-    const data = await itemUseCase.get();
-    setItems(data);
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    loadItems();
-  }, []);
-
   const addItem = async (item: { inventory_uuid: string; name: string; quantity: number; quantity_unit: string }) => {
-    await itemUseCase.post(item);
-    await loadItems();
+    setIsLoading(true);
+    try {
+      console.log("VM")
+      await itemUseCase.post(item);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const editItem = async (item: Item) => {
-    await itemUseCase.update(item);
-    await loadItems();
+    setIsLoading(true);
+    try {
+      await itemUseCase.update(item);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const removeItem = async (id: string) => {
-    await itemUseCase.delete(id);
-    await loadItems();
+    setIsLoading(true);
+    try {
+      await itemUseCase.delete(id);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  return { items, isLoading, loadItems, addItem, editItem, removeItem };
+  return { isLoading, addItem, editItem, removeItem };
 };

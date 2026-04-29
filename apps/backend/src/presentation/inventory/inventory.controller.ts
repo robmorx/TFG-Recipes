@@ -11,12 +11,12 @@ import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 export class InventoryController {
   constructor(private readonly inventoryUseCase: InventoryUseCase) {}
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get inventory by user internal ID' })
-  @ApiParam({ name: 'id', description: 'Internal user ID' })
+  @Get(':user_uuid')
+  @ApiOperation({ summary: 'Get inventory by user UUID' })
+  @ApiParam({ name: 'user_uuid', description: 'User UUID' })
   @ApiResponse({ status: 200, description: 'User inventory with items' })
-  async getByUser(@Param('id') id: string) {
-    return this.inventoryUseCase.getByInternalUserId(parseInt(id));
+  async getByUserUUID(@Param('user_uuid') user_uuid: string) {
+    return this.inventoryUseCase.getByUserUUID(user_uuid);
   }
 
   @Delete('delete')

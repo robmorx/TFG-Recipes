@@ -14,10 +14,6 @@ export class ItemUseCase implements IItemUseCase {
       this.itemRepository = itemRepository;
     }
 
-  async get(): Promise<Item[]> {
-    return this.itemRepository.get();
-  }
-
   async post(item: { inventory_uuid: string; name: string; quantity: number; quantity_unit: string }): Promise<Item> {
     return this.itemRepository.post(item);
   }
