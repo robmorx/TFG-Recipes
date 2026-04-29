@@ -7,16 +7,18 @@ import { IItemRepository } from '../../domain/item/item.repository.interface';
 export class ItemRepository implements IItemRepository {
   constructor(private prisma: PrismaService) {}
 
-  async getById(id: number): Promise<Item | null> {
-    const items = await this.prisma.item.findMany();
-    const item = items[id - 1];
+  async getById(id: string): Promise<Item | null> {
+    const item = await this.prisma.item.findUnique({
+      where: { id: id },
+    });
     if (!item) return null;
     return this.mapToEntity(item);
   }
 
   async add(entity: Omit<Item, 'id'>): Promise<Item> {
-    const inventories = await this.prisma.inventory.findMany();
-    const inventory = inventories[entity.inventory_id - 1];
+    const inventory = await this.prisma.inventory.findUnique({
+      where: { id: entity.inventory_id },
+    });
     if (!inventory) throw new Error('Inventory not found');
 
     const item = await this.prisma.item.create({
@@ -30,17 +32,19 @@ export class ItemRepository implements IItemRepository {
     return this.mapToEntity(item);
   }
 
-  async delete(id: number): Promise<number> {
-    const items = await this.prisma.item.findMany();
-    const item = items[id - 1];
+  async delete(id: string): Promise<number> {
+    const item = await this.prisma.item.findUnique({
+      where: { id: id },
+    });
     if (!item) return 0;
     await this.prisma.item.delete({ where: { id: item.id } });
     return 1;
   }
 
-  async update(id: number, entity: Partial<Item>): Promise<number> {
-    const items = await this.prisma.item.findMany();
-    const item = items[id - 1];
+  async update(id: string, entity: Partial<Item>): Promise<number> {
+    const item = await this.prisma.item.findUnique({
+      where: { id: id },
+    });
     if (!item) return 0;
     await this.prisma.item.update({
       where: { id: item.id },
@@ -55,8 +59,8 @@ export class ItemRepository implements IItemRepository {
 
   private mapToEntity(i: any): Item {
     return {
-      id: parseInt(i.id.replace(/-/g, '').slice(0, 8), 16),
-      inventory_id: parseInt(i.inventoryId.replace(/-/g, '').slice(0, 8), 16),
+      id: i.id,
+      inventory_id: i.inventoryId,
       name: i.name,
       quantity: i.quantity,
       quantity_unit: i.quantityUnit,

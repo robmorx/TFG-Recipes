@@ -1,5 +1,5 @@
 export class ItemResponseDTO {
-  id: number;
+  id: string;
   name: string;
   quantity: number;
   quantityUnit: string;

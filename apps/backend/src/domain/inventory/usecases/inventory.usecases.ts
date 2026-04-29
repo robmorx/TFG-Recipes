@@ -12,7 +12,9 @@ export class InventoryUseCase implements IInventoryUseCase {
   ) {}
 
   async getByUserUUID(user_uuid: string): Promise<InventoryResponseDTO | null> {
+    console.log('[DEBUG] InventoryUseCase.getByUserUUID called with:', user_uuid);
     const inventory = await this.inventoryRepository.getByUserUUID(user_uuid);
+    console.log('[DEBUG] InventoryUseCase.getByUserUUID - inventory from repo:', inventory);
     if (!inventory) return null;
     return this.toResponseDTO(inventory);
   }
@@ -38,7 +40,10 @@ export class InventoryUseCase implements IInventoryUseCase {
   }
 
   private toResponseDTO(inventory: any): InventoryResponseDTO {
-    return {
+    console.log('[DEBUG] toResponseDTO - inventory:', inventory);
+    console.log('[DEBUG] toResponseDTO - inventory.items:', inventory.items);
+    
+    const response: InventoryResponseDTO = {
       inventory_uuid: inventory.inventory_uuid,
       user_uuid: inventory.user_uuid,
       items:
@@ -50,5 +55,8 @@ export class InventoryUseCase implements IInventoryUseCase {
         })) || [],
       createdAt: inventory.createdAt,
     };
+    
+    console.log('[DEBUG] toResponseDTO - response:', response);
+    return response;
   }
 }

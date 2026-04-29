@@ -8,20 +8,24 @@ export class InventoryRepository implements IInventoryRepository {
   constructor(private prisma: PrismaService) {}
 
   async getByUserUUID(user_uuid: string): Promise<Inventory | null> {
+    console.log('[DEBUG] getByUserUUID called with:', user_uuid);
     const inventory = await this.prisma.inventory.findUnique({
       where: { userId: user_uuid },
       include: { items: true },
     });
+    console.log('[DEBUG] Found inventory:', inventory);
     if (!inventory) return null;
     return this.mapToEntity(inventory);
   }
 
   async add(entity: { user_uuid: string }): Promise<Inventory> {
+    console.log('[DEBUG] InventoryRepository.add called with user_uuid:', entity.user_uuid);
     const inventory = await this.prisma.inventory.create({
       data: {
         userId: entity.user_uuid,
       },
     });
+    console.log('[DEBUG] Created inventory:', inventory);
     return this.mapToEntity(inventory);
   }
 
@@ -35,18 +39,18 @@ export class InventoryRepository implements IInventoryRepository {
   }
 
   private mapToEntity(i: any): Inventory {
+    console.log('[DEBUG] mapToEntity - raw inventory:', i);
+    console.log('[DEBUG] mapToEntity - items:', i.items);
     return {
-      id: parseInt(i.id.replace(/-/g, '').slice(0, 8), 16),
+      id: i.id,
       inventory_uuid: i.id,
       user_uuid: i.userId,
       items: i.items.map((item: any) => ({
-        id: parseInt(item.id.replace(/-/g, '').slice(0, 8), 16),
-        inventory_id: parseInt(
-          item.inventoryId.replace(/-/g, '').slice(0, 8),
-          16,
-        ),
+        id: item.id,
+        inventory_id: item.inventoryId,
         name: item.name,
         quantity: item.quantity,
+        quantityUnit: item.quantityUnit,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
       })),
