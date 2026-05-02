@@ -1,61 +1,60 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-interface Recipe {
-  id: number;
-  recipe_uuid: string;
-  name: string;
-  ingredients: string[];
-  steps: string[];
-  user_uuid: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { GoogleGenAI } from '@google/genai';
 
 @Injectable()
 export class AiService {
-  constructor(private configService: ConfigService) {}
+  private ai: GoogleGenAI;
 
-  async generate(prompt: string): Promise<Recipe> {
-    const apiKey = this.configService.get<string>('AI_API_KEY');
-    const model = this.configService.get<string>('AI_MODEL') || 'gpt-4';
+  constructor(private configService: ConfigService) {
+    this.ai = new GoogleGenAI({
+      apiKey: this.configService.get<string>('GEMINI_API_KEY'),
+    });
+  }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'user',
-            content: `Generate a recipe with the following details: ${prompt}. Return ONLY a valid JSON object with this exact structure: {"name": "string", "ingredients": ["string"], "steps": ["string"]}. No additional text.`,
+  async generate(prompt: string): Promise<{
+    name: string;
+    ingredients: string[];
+    steps: string[];
+  }> {
+    const model = this.configService.get<string>('GEMINI_MODEL') || 'gemini-3-flash';
+
+    const result = await this.ai.models.generateContent({
+      model,
+      contents: `Generate a recipe: ${prompt}. Return ONLY a valid JSON object with this exact structure: {"name": "string", "ingredients": ["string"], "steps": ["string"]}. No additional text.`,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            ingredients: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            steps: {
+              type: 'array',
+              items: { type: 'string' },
+            },
           },
-        ],
-      }),
+          required: ['name', 'ingredients', 'steps'],
+        },
+      },
     });
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '{}';
-
+    const text = result.text || '{}';
     let parsed: { name: string; ingredients: string[]; steps: string[] };
+
     try {
-      parsed = JSON.parse(content);
+      parsed = JSON.parse(text);
     } catch {
       parsed = { name: 'Generated Recipe', ingredients: [], steps: [] };
     }
 
     return {
-      id: 0,
-      recipe_uuid: crypto.randomUUID(),
-      name: parsed.name,
-      ingredients: parsed.ingredients,
-      steps: parsed.steps,
-      user_uuid: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      name: parsed.name || 'Generated Recipe',
+      ingredients: parsed.ingredients || [],
+      steps: parsed.steps || [],
     };
   }
 }
