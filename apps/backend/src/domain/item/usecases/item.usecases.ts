@@ -22,6 +22,22 @@ export class ItemUseCase implements IItemUseCase {
     console.log('[DEBUG] Found inventory:', inventory);
     if (!inventory) throw new NotFoundException('Inventory not found');
 
+    const existingItem = await this.itemRepository.findByNameAndInventoryId(
+      entity.name,
+      inventory.inventory_uuid,
+    );
+
+    if (existingItem) {
+      const updatedQuantity = existingItem.quantity + entity.quantity;
+      await this.itemRepository.update(existingItem.id, {
+        quantity: updatedQuantity,
+        quantity_unit: entity.quantity_unit,
+        updatedAt: new Date(),
+      });
+      const updatedItem = await this.itemRepository.getById(existingItem.id);
+      return this.toResponseDTO(updatedItem!);
+    }
+
     const itemEntity: Omit<Item, 'id'> = {
       inventory_id: inventory.inventory_uuid,
       name: entity.name,

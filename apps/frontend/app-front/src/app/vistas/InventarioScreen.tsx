@@ -1,7 +1,7 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   FlatList, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform,
-  ScrollView, Alert, ActivityIndicator,
+  ScrollView, Alert, ActivityIndicator, Modal,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -43,6 +43,10 @@ export default function InventarioScreen() {
   const [quantityUnit, setQuantityUnit] = useState<QuantityUnit>(QuantityUnit.UNITS);
   const [filterUnit, setFilterUnit] = useState<QuantityUnit | 'ALL'>('ALL');
   const [showUnitPicker, setShowUnitPicker] = useState(false);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editQuantity, setEditQuantity] = useState('');
+  const [editQuantityUnit, setEditQuantityUnit] = useState<QuantityUnit>(QuantityUnit.UNITS);
 
   const handleAddItem = async () => {
     const trimmed = name.trim();
