@@ -4,13 +4,17 @@ export enum RecipeType {
   DINNER = 'DINNER',
 }
 
+export interface RecipeStep {
+  instruction: string;
+  timerMinutes: number;
+}
+
 export interface Recipe {
-  id: string;
-  recipe_uuid?: string;
+  recipe_uuid: string;
   user_uuid?: string;
   name: string;
   ingredients: string[];
-  steps: string[];
+  steps: RecipeStep[]; // Changed from string[]
   type?: RecipeType;
   createdAt?: Date;
   updatedAt?: Date;

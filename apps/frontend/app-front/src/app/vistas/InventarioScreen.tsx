@@ -37,7 +37,7 @@ export default function InventarioScreen() {
   console.log('[DEBUG] InventarioScreen - user_uuid:', user?.user_uuid);
   
   const { inventory, loadInventory, isLoading } = useInventoryVM();
-  const { addItem, removeItem } = useItemVM();
+  const { addItem, removeItem, editItem } = useItemVM();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [quantityUnit, setQuantityUnit] = useState<QuantityUnit>(QuantityUnit.UNITS);
@@ -64,7 +64,7 @@ export default function InventarioScreen() {
       setName('');
       setQuantity('');
       setQuantityUnit(QuantityUnit.UNITS);
-      await loadInventory(user?.user_uuid || '');
+      await loadInventory();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'No se pudo añadir el artículo');
     }
@@ -78,10 +78,38 @@ export default function InventarioScreen() {
   const handleDeleteItem = async (id: string) => {
     try {
       await removeItem(id);
-      await loadInventory(user?.user_uuid || '');
+      await loadInventory();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'No se pudo eliminar el artículo');
     }
+  };
+
+  const handleEditItem = (item: Item) => {
+    setEditingItem(item);
+    setEditQuantity(item.quantity.toString());
+    setEditQuantityUnit(item.quantityUnit as QuantityUnit);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem || !user?.user_uuid) return;
+    try {
+      await editItem({
+        ...editingItem,
+        quantity: parseInt(editQuantity) || editingItem.quantity,
+        quantityUnit: editQuantityUnit,
+      });
+      setShowEditModal(false);
+      setEditingItem(null);
+      await loadInventory();
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo actualizar el artículo');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowEditModal(false);
+    setEditingItem(null);
   };
 
   const selectedUnitLabel = QUANTITY_UNIT_OPTIONS.find(u => u.value === quantityUnit)?.label || 'Und';
@@ -210,6 +238,13 @@ export default function InventarioScreen() {
                     <Text style={s.itemQty}>{item.quantity} {getUnitLabel(item.quantityUnit as QuantityUnit)}</Text>
                   </View>
                   <TouchableOpacity
+                    style={s.editBtn}
+                    onPress={() => handleEditItem(item)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={s.editIcon}>✎</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={s.deleteBtn}
                     onPress={() => handleDeleteItem(item.id)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -229,6 +264,57 @@ export default function InventarioScreen() {
 
         </View>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={showEditModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseModal}
+      >
+        <View style={s.modalOverlay}>
+          <View style={s.modalCard}>
+            <Text style={s.modalTitle}>Editar Artículo</Text>
+            <Text style={s.modalItemName}>{editingItem?.name}</Text>
+
+            <View style={s.modalField}>
+              <Text style={s.label}>Cantidad</Text>
+              <TextInput
+                style={s.input}
+                value={editQuantity}
+                onChangeText={setEditQuantity}
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View style={s.modalField}>
+              <Text style={s.label}>Unidad</Text>
+              <View style={s.unitRow}>
+                {QUANTITY_UNIT_OPTIONS.map(opt => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[s.unitChip, editQuantityUnit === opt.value && s.unitChipActive]}
+                    onPress={() => setEditQuantityUnit(opt.value)}
+                  >
+                    <Text style={[s.unitChipText, editQuantityUnit === opt.value && s.unitChipTextActive]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={s.modalActions}>
+              <TouchableOpacity style={s.modalCancelBtn} onPress={handleCloseModal}>
+                <Text style={s.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.modalSaveBtn} onPress={handleSaveEdit}>
+                <Text style={s.modalSaveText}>Guardar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -325,4 +411,42 @@ const s = StyleSheet.create({
   emptyIcon: { fontSize: 48, marginBottom: 14 },
   emptyText: { fontSize: 16, fontWeight: '600', color: C.text, marginBottom: 6 },
   emptySub: { fontSize: 13, color: C.muted, textAlign: 'center' },
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  modalCard: {
+    backgroundColor: C.card, borderRadius: 16,
+    padding: 24, width: '100%', maxWidth: 400,
+    borderWidth: 1, borderColor: C.border,
+  },
+  modalTitle: { fontSize: 18, fontWeight: '600', color: C.text, marginBottom: 4 },
+  modalItemName: { fontSize: 14, color: C.muted, marginBottom: 20 },
+  modalField: { marginBottom: 16 },
+  unitRow: { flexDirection: 'row', gap: 8 },
+  unitChip: {
+    paddingHorizontal: 16, paddingVertical: 8,
+    borderRadius: 20, backgroundColor: C.cardAlt,
+    borderWidth: 1, borderColor: C.border,
+  },
+  unitChipActive: { backgroundColor: C.primary, borderColor: C.primary },
+  unitChipText: { fontSize: 14, color: C.text },
+  unitChipTextActive: { color: '#fff', fontWeight: '500' },
+  modalActions: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  modalCancelBtn: {
+    flex: 1, paddingVertical: 12, borderRadius: 10,
+    backgroundColor: C.cardAlt, alignItems: 'center',
+  },
+  modalCancelText: { fontSize: 15, color: C.text, fontWeight: '500' },
+  modalSaveBtn: {
+    flex: 1, paddingVertical: 12, borderRadius: 10,
+    backgroundColor: C.primary, alignItems: 'center',
+  },
+  modalSaveText: { fontSize: 15, color: '#fff', fontWeight: '600' },
+  editBtn: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: C.cardAlt, alignItems: 'center', justifyContent: 'center',
+  },
+  editIcon: { fontSize: 10, color: C.primary, fontWeight: '600' },
 });

@@ -15,10 +15,6 @@ export class RecipeUseCase implements IRecipeUseCase {
       this.recipeRepository = recipeRepository;
     }
 
-  async get(): Promise<Recipe[]> {
-    return this.recipeRepository.get();
-  }
-
   async getById(id: string): Promise<Recipe | null> {
     return this.recipeRepository.getById(id);
   }

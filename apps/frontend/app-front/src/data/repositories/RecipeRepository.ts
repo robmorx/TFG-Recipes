@@ -6,10 +6,6 @@ import { apiClient } from '../network/api-client';
 
 @injectable()
 export class RecipeRepository implements IRecipeRepository {
-  async get(): Promise<Recipe[]> {
-    return apiClient.get<Recipe[]>('/recipes');
-  }
-
   async getById(id: string): Promise<Recipe | null> {
     return apiClient.get<Recipe>(`/recipes/${id}`);
   }
@@ -24,6 +20,6 @@ export class RecipeRepository implements IRecipeRepository {
   }
 
   async getByUserId(userId: string): Promise<Recipe[]> {
-    return apiClient.get<Recipe[]>(`/recipes/${userId}`);
+    return apiClient.get<Recipe[]>(`/recipes/user/${userId}`);
   }
 }

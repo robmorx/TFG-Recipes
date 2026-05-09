@@ -9,12 +9,12 @@ export class ItemRepository implements IItemRepository {
     return apiClient.post<Item>('/items/add', item);
   }
 
-  async update(item: Item): Promise<Item> {
+  async update(item: { id: string; name: string; quantity: number; quantity_unit: string }): Promise<Item> {
     return apiClient.put<Item>('/items/update', item);
   }
 
   async delete(id: string): Promise<boolean> {
-    await apiClient.delete('/items/delete', { id: Number(id) });
+    await apiClient.delete('/items/delete', { id });
     return true;
   }
 }

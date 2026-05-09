@@ -46,7 +46,7 @@ export default function RecetasScreen() {
   };
 
   const handleSelect = (recipe: Recipe) => {
-    router.push(`/vistas/RecetaDetalleScreen?id=${recipe.id}`);
+    router.push(`/vistas/RecetaDetalleScreen?id=${recipe.recipe_uuid}`);
   };
 
   const getRecipeIcon = (index: number) => RECIPE_ICONS[index % RECIPE_ICONS.length];
@@ -98,7 +98,7 @@ export default function RecetasScreen() {
         ) : filteredRecipes.length > 0 ? (
           <FlatList
             data={filteredRecipes}
-            keyExtractor={item => item.id}
+            keyExtractor={item => item.recipe_uuid}
             contentContainerStyle={s.list}
             showsVerticalScrollIndicator={false}
             renderItem={({ item, index }) => {
@@ -122,7 +122,7 @@ export default function RecetasScreen() {
                   </View>
                   <TouchableOpacity
                     style={s.deleteBtn}
-                    onPress={() => handleDelete(item.id)}
+                    onPress={() => handleDelete(item.recipe_uuid)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Text style={s.deleteIcon}>✕</Text>

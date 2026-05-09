@@ -24,7 +24,12 @@ export const useItemVM = () => {
   const editItem = async (item: Item) => {
     setIsLoading(true);
     try {
-      await itemUseCase.update(item);
+      await itemUseCase.update({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        quantity_unit: item.quantityUnit,
+      });
     } catch (error) {
       throw error;
     } finally {
