@@ -9,6 +9,7 @@ import { AiModule } from './ai/ai.module';
 import { RecipeModule } from './presentation/recipe/recipe.module';
 import { ItemModule } from './presentation/item/item.module';
 import { InventoryModule } from './presentation/inventory/inventory.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { InventoryModule } from './presentation/inventory/inventory.module';
     RecipeModule,
     ItemModule,
     InventoryModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

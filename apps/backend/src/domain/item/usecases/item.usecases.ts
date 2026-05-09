@@ -15,11 +15,9 @@ export class ItemUseCase implements IItemUseCase {
   ) {}
 
   async add(entity: ItemAddRequestDTO): Promise<ItemResponseDTO> {
-    console.log('[DEBUG] ItemUseCase.add called with inventory_uuid:', entity.inventory_uuid);
     const inventory = await this.inventoryRepository.getByUserUUID(
       entity.inventory_uuid,
     );
-    console.log('[DEBUG] Found inventory:', inventory);
     if (!inventory) throw new NotFoundException('Inventory not found');
 
     const existingItem = await this.itemRepository.findByNameAndInventoryId(

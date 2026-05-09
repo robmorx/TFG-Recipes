@@ -15,7 +15,10 @@ export class ItemRepository implements IItemRepository {
     return this.mapToEntity(item);
   }
 
-  async findByNameAndInventoryId(name: string, inventoryId: string): Promise<Item | null> {
+  async findByNameAndInventoryId(
+    name: string,
+    inventoryId: string,
+  ): Promise<Item | null> {
     const item = await this.prisma.item.findFirst({
       where: {
         name: name,

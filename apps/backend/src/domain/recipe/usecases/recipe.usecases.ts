@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { RecipeRepository } from '../../../data/repository/recipe.repository';
 import { AiService } from '../../../ai/ai.service';
 import { RecipeAddRequestDTO } from '../dto/recipe.add.request.dto';
@@ -13,37 +17,52 @@ export class RecipeUseCase implements IRecipeUseCase {
     private aiService: AiService,
   ) {}
 
-  async getList(): Promise<RecipeResponseDTO[]> {
-    const recipes = await this.recipeRepository.getList();
-    return recipes.map((r) => this.toResponseDTO(r));
-  }
-
   async getByUserUUID(user_uuid: string): Promise<RecipeResponseDTO[]> {
     const recipes = await this.recipeRepository.getByUserUUID(user_uuid);
     return recipes.map((r) => this.toResponseDTO(r));
   }
 
-  async getByInternalUserId(id: number): Promise<RecipeResponseDTO[]> {
-    const user = await this.recipeRepository.getUserByInternalId(id);
-    if (!user) return [];
-    const recipes = await this.recipeRepository.getByUserUUID(user.user_uuid);
-    return recipes.map((r) => this.toResponseDTO(r));
+  async getByUUID(uuid: string): Promise<RecipeResponseDTO | null> {
+    const recipe = await this.recipeRepository.getByUUID(uuid);
+    if (!recipe) return null;
+    return this.toResponseDTO(recipe);
   }
 
   async add(entity: RecipeAddRequestDTO): Promise<RecipeResponseDTO> {
-    const generatedRecipe = await this.aiService.generate(entity.prompt);
-    const recipeEntity: Omit<Recipe, 'id'> = {
-      recipe_uuid: crypto.randomUUID(),
-      name: generatedRecipe.name,
-      ingredients: generatedRecipe.ingredients,
-      steps: generatedRecipe.steps,
-      type: entity.type,
-      user_uuid: entity.user_uuid,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const recipe = await this.recipeRepository.add(recipeEntity);
-    return this.toResponseDTO(recipe);
+    try {
+      const generatedRecipe = await this.aiService.generate(entity.prompt);
+
+      // Validate required fields
+      if (
+        !generatedRecipe.name ||
+        !generatedRecipe.ingredients?.length ||
+        !generatedRecipe.steps?.length
+      ) {
+        throw new BadRequestException('Invalid recipe data from AI');
+      }
+
+      const recipeEntity: Omit<Recipe, 'id'> = {
+        recipe_uuid: crypto.randomUUID(),
+        name: generatedRecipe.name,
+        ingredients: generatedRecipe.ingredients,
+        steps: generatedRecipe.steps,
+        type: entity.type,
+        user_uuid: entity.user_uuid,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const recipe = await this.recipeRepository.add(recipeEntity);
+      return this.toResponseDTO(recipe);
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to create recipe');
+    }
   }
 
   async delete(uuid: string): Promise<boolean> {

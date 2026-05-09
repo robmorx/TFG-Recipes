@@ -17,13 +17,13 @@ export class LoginRequestDTO {
 export class LoginResponseDTO {
   @ApiProperty()
   access_token: string;
-  
+
   @ApiProperty()
   user_uuid: string;
-  
+
   @ApiProperty()
   name: string;
-  
+
   @ApiProperty()
   email: string;
 }

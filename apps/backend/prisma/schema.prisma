@@ -21,14 +21,19 @@ enum RecipeType {
 }
 
 model User {
-  id         String     @id @default(uuid())
-  name       String
-  email      String     @unique
-  password   String
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  recipes    Recipe[]
-  inventory  Inventory? @relation
+  id                     String     @id @default(uuid())
+  name                   String
+  email                  String     @unique
+  password               String
+  isVerified             Boolean    @default(false)
+  verificationCode       String?
+  verificationCodeExpires DateTime?
+  resetPasswordCode      String?
+  resetPasswordCodeExpires DateTime?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  recipes                Recipe[]
+  inventory              Inventory? @relation
 }
 
 model Inventory {
@@ -44,7 +49,7 @@ model Recipe {
   id          String     @id @default(uuid())
   name        String
   ingredients String[]
-  steps       String[]
+  steps       Json
   type        RecipeType @default(DINNER)
   userId      String
   user        User       @relation(fields: [userId], references: [id])

@@ -1,10 +1,15 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
+import {
+  InternalServerErrorException,
+  BadRequestException,
+} from '@nestjs/common';
 
 @Injectable()
 export class AiService {
   private ai: GoogleGenAI;
+  private readonly logger = new Logger(AiService.name);
 
   constructor(private configService: ConfigService) {
     this.ai = new GoogleGenAI({
@@ -15,46 +20,107 @@ export class AiService {
   async generate(prompt: string): Promise<{
     name: string;
     ingredients: string[];
-    steps: string[];
+    steps: { instruction: string; timerMinutes: number }[];
   }> {
-    const model = this.configService.get<string>('GEMINI_MODEL') || 'gemini-3-flash';
-
-    const result = await this.ai.models.generateContent({
-      model,
-      contents: `Generate a recipe: ${prompt}. Return ONLY a valid JSON object with this exact structure: {"name": "string", "ingredients": ["string"], "steps": ["string"]}. No additional text.`,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: 'object',
-          properties: {
-            name: { type: 'string' },
-            ingredients: {
-              type: 'array',
-              items: { type: 'string' },
-            },
-            steps: {
-              type: 'array',
-              items: { type: 'string' },
-            },
-          },
-          required: ['name', 'ingredients', 'steps'],
-        },
-      },
-    });
-
-    const text = result.text || '{}';
-    let parsed: { name: string; ingredients: string[]; steps: string[] };
-
     try {
-      parsed = JSON.parse(text);
-    } catch {
-      parsed = { name: 'Generated Recipe', ingredients: [], steps: [] };
-    }
+      const model =
+        this.configService.get<string>('GEMINI_MODEL') || 'gemini-3-flash';
 
-    return {
-      name: parsed.name || 'Generated Recipe',
-      ingredients: parsed.ingredients || [],
-      steps: parsed.steps || [],
-    };
+      const result = await this.ai.models.generateContent({
+        model,
+        contents: `Generate a recipe in spanish only using ingredients listed maybe you can add things all people should have in their house: ${prompt}. 
+Return ONLY a valid JSON object with this exact structure: {"name": "string", "ingredients": ["string"], "steps": [{"instruction": "string", "timerMinutes": number}]}. The name should be creative and descriptive. No additional text.`,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              ingredients: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+              steps: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    instruction: { type: 'string' },
+                    timerMinutes: {
+                      type: 'number',
+                      description:
+                        'Minutes needed for this step. 0 if no timer.',
+                    },
+                  },
+                  required: ['instruction', 'timerMinutes'],
+                },
+              },
+            },
+            required: ['ingredients', 'steps'],
+          },
+        },
+      });
+
+      const text = result.text || '{}';
+      let parsed: {
+        name: string;
+        ingredients: string[];
+        steps: Array<{ instruction: string; timerMinutes: number }>;
+      };
+
+      try {
+        const parsedResult = JSON.parse(text) as {
+          name: string;
+          ingredients: string[];
+          steps: Array<{ instruction: string; timerMinutes: number }>;
+        };
+        parsed = parsedResult;
+      } catch (parseError) {
+        this.logger.error('Failed to parse AI response as JSON', parseError);
+        throw new BadRequestException('AI generated invalid response format');
+      }
+
+      // Validate structure
+      if (!parsed.name || typeof parsed.name !== 'string') {
+        throw new BadRequestException('AI response missing valid name');
+      }
+
+      if (
+        !Array.isArray(parsed.ingredients) ||
+        parsed.ingredients.length === 0
+      ) {
+        throw new BadRequestException('AI response missing ingredients');
+      }
+
+      if (!Array.isArray(parsed.steps) || parsed.steps.length === 0) {
+        throw new BadRequestException('AI response missing steps');
+      }
+
+      // Validate each step
+      const validSteps = parsed.steps.map((step, index: number) => {
+        if (!step || typeof step.instruction !== 'string') {
+          throw new BadRequestException(
+            `Invalid step ${index + 1}: missing instruction`,
+          );
+        }
+        return {
+          instruction: step.instruction,
+          timerMinutes:
+            typeof step.timerMinutes === 'number' ? step.timerMinutes : 0,
+        };
+      });
+
+      return {
+        name: parsed.name,
+        ingredients: parsed.ingredients.filter(
+          (i): i is string => typeof i === 'string',
+        ),
+        steps: validSteps,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      this.logger.error('Gemini API call failed', error);
+      throw new InternalServerErrorException('Failed to generate recipe');
+    }
   }
 }

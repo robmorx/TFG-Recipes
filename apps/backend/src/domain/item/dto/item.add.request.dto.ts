@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsNumber, IsUUID, Min, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsUUID,
+  Min,
+  IsEnum,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { QuantityUnit } from '../item';
 

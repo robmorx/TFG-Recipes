@@ -68,6 +68,62 @@ export class UserRepository implements IUserRepository {
     return 1;
   }
 
+  async updatePassword(uuid: string, hashedPassword: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: uuid },
+      data: { password: hashedPassword },
+    });
+  }
+
+  async updateVerificationCode(
+    uuid: string,
+    code: string,
+    expires: Date,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: uuid },
+      data: {
+        verificationCode: code,
+        verificationCodeExpires: expires,
+      },
+    });
+  }
+
+  async verifyUser(uuid: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: uuid },
+      data: {
+        isVerified: true,
+        verificationCode: null,
+        verificationCodeExpires: null,
+      },
+    });
+  }
+
+  async updateResetPasswordCode(
+    uuid: string,
+    code: string,
+    expires: Date,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: uuid },
+      data: {
+        resetPasswordCode: code,
+        resetPasswordCodeExpires: expires,
+      },
+    });
+  }
+
+  async clearResetPasswordCode(uuid: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: uuid },
+      data: {
+        resetPasswordCode: null,
+        resetPasswordCodeExpires: null,
+      },
+    });
+  }
+
   private mapToEntity(u: any): User {
     return {
       id: parseInt(u.id.replace(/-/g, '').slice(0, 8), 16),
@@ -75,6 +131,11 @@ export class UserRepository implements IUserRepository {
       name: u.name,
       email: u.email,
       password: u.password,
+      isVerified: u.isVerified,
+      verificationCode: u.verificationCode,
+      verificationCodeExpires: u.verificationCodeExpires,
+      resetPasswordCode: u.resetPasswordCode,
+      resetPasswordCodeExpires: u.resetPasswordCodeExpires,
       createdAt: u.createdAt,
       updatedAt: u.updatedAt,
     };

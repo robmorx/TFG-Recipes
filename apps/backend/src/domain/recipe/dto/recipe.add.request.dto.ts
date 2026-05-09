@@ -1,14 +1,18 @@
-import { IsString, IsNotEmpty, IsUUID, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsEnum,
+  IsOptional,
+  IsNumber,
+  IsArray,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { RecipeType } from '../recipe';
 
 export class RecipeAddRequestDTO {
-  @ApiProperty({ example: 'Pasta Carbonara' })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({ example: 'Classic Italian pasta with eggs, cheese, and bacon' })
+  @ApiProperty({
+    example: 'Classic Italian pasta with eggs, cheese, and bacon',
+  })
   @IsString()
   prompt: string;
 
@@ -19,4 +23,29 @@ export class RecipeAddRequestDTO {
   @ApiProperty({ example: 'uuid-string' })
   @IsUUID()
   user_uuid: string;
+
+  @ApiProperty({ example: 4, required: false })
+  @IsOptional()
+  @IsNumber()
+  servings?: number;
+
+  @ApiProperty({
+    example: ['vegetarian', 'gluten-free'],
+    required: false,
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  dietaryPreferences?: string[];
+
+  @ApiProperty({
+    example: ['2 cups of flour', '3 eggs'],
+    required: false,
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  selectedIngredients?: string[];
 }

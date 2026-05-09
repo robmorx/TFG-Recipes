@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Recipe } from '../../domain/recipe/recipe';
 import { IRecipeRepository } from '../../domain/recipe/recipe.repository.interface';
@@ -6,11 +10,6 @@ import { IRecipeRepository } from '../../domain/recipe/recipe.repository.interfa
 @Injectable()
 export class RecipeRepository implements IRecipeRepository {
   constructor(private prisma: PrismaService) {}
-
-  async getList(): Promise<Recipe[]> {
-    const recipes = await this.prisma.recipe.findMany();
-    return recipes.map((r) => this.mapToEntity(r));
-  }
 
   async getByUUID(uuid: string): Promise<Recipe | null> {
     const recipe = await this.prisma.recipe.findUnique({ where: { id: uuid } });
@@ -25,24 +24,26 @@ export class RecipeRepository implements IRecipeRepository {
     return recipes.map((r) => this.mapToEntity(r));
   }
 
-  async getUserByInternalId(id: number): Promise<{ user_uuid: string } | null> {
-    const users = await this.prisma.user.findMany();
-    const user = users[id - 1];
-    if (!user) return null;
-    return { user_uuid: user.id };
-  }
-
   async add(entity: Omit<Recipe, 'id'>): Promise<Recipe> {
-    const recipe = await this.prisma.recipe.create({
-      data: {
-        name: entity.name,
-        ingredients: entity.ingredients,
-        steps: entity.steps,
-        type: entity.type,
-        userId: entity.user_uuid,
-      },
-    });
-    return this.mapToEntity(recipe);
+    try {
+      const recipe = await this.prisma.recipe.create({
+        data: {
+          name: entity.name,
+          ingredients: entity.ingredients,
+          steps: entity.steps as any, // eslint-disable-line @typescript-eslint/no-unsafe-assignment -- Json type in Prisma
+          type: entity.type,
+          userId: entity.user_uuid,
+        },
+      });
+      return this.mapToEntity(recipe);
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        if (error.code === 'P2003') {
+          throw new BadRequestException('Invalid user UUID');
+        }
+      }
+      throw new InternalServerErrorException('Failed to save recipe');
+    }
   }
 
   async delete(uuid: string): Promise<number> {
@@ -52,13 +53,29 @@ export class RecipeRepository implements IRecipeRepository {
     return 1;
   }
 
-  private mapToEntity(r: any): Recipe {
+  private mapToEntity(r: {
+    id: string;
+    name: string;
+    ingredients: string[];
+    steps: unknown;
+    type: string;
+    userId: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }): Recipe {
     return {
       recipe_uuid: r.id,
       name: r.name,
       ingredients: r.ingredients,
-      steps: r.steps,
-      type: r.type,
+      steps:
+        typeof r.steps === 'string'
+          ? (JSON.parse(r.steps) as Array<{
+              instruction: string;
+              timerMinutes: number;
+            }>)
+          : (r.steps as Array<{ instruction: string; timerMinutes: number }>) ||
+            [],
+      type: r.type as Recipe['type'],
       user_uuid: r.userId,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,

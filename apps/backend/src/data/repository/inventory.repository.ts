@@ -19,7 +19,10 @@ export class InventoryRepository implements IInventoryRepository {
   }
 
   async add(entity: { user_uuid: string }): Promise<Inventory> {
-    console.log('[DEBUG] InventoryRepository.add called with user_uuid:', entity.user_uuid);
+    console.log(
+      '[DEBUG] InventoryRepository.add called with user_uuid:',
+      entity.user_uuid,
+    );
     const inventory = await this.prisma.inventory.create({
       data: {
         userId: entity.user_uuid,
