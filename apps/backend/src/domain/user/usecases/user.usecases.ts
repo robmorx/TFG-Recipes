@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../../../data/repository/user.repository';
 import { InventoryRepository } from '../../../data/repository/inventory.repository';
+import { MailService } from '../../../mail/mail.service';
 import { UserAddRequestDTO } from '../dto/user.add.request.dto';
 import { UserUpdateRequestDTO } from '../dto/user.update.request.dto';
 import { UserResponseDTO } from '../dto/user.response.dto';
@@ -12,6 +13,7 @@ export class UserUseCase implements IUserUseCase {
   constructor(
     private userRepository: UserRepository,
     private inventoryRepository: InventoryRepository,
+    private mailService: MailService,
   ) {}
 
   async getList(): Promise<UserResponseDTO[]> {
@@ -25,25 +27,29 @@ export class UserUseCase implements IUserUseCase {
     return this.toResponseDTO(user);
   }
 
-  async getByInternalId(id: number): Promise<UserResponseDTO | null> {
-    const user = await this.userRepository.getById(id);
-    if (!user) return null;
-    return this.toResponseDTO(user);
-  }
-
   async add(entity: UserAddRequestDTO): Promise<UserResponseDTO> {
-    console.log('[DEBUG] UserUseCase.add called with:', entity.name, entity.email);
-    const userEntity: Omit<User, 'id' | 'user_uuid'> = {
+    const userEntity = {
       name: entity.name,
       email: entity.email,
       password: entity.password,
+      isVerified: false,
+      verificationCode: null as string | null,
+      verificationCodeExpires: null as Date | null,
+      resetPasswordCode: null as string | null,
+      resetPasswordCodeExpires: null as Date | null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
     const userUuid = await this.userRepository.add(userEntity as any);
-    console.log('[DEBUG] Created user with UUID:', userUuid);
     await this.inventoryRepository.add({ user_uuid: userUuid });
-    console.log('[DEBUG] Created inventory for user:', userUuid);
+
+    const code = this.generateVerificationCode();
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 24);
+    await this.userRepository.updateVerificationCode(userUuid, code, expires);
+
+    await this.mailService.sendVerificationCode(entity.email, code);
+
     const user = await this.userRepository.getByUUID(userUuid);
     return this.toResponseDTO(user!);
   }
@@ -76,5 +82,9 @@ export class UserUseCase implements IUserUseCase {
       email: user.email,
       createdAt: user.createdAt,
     };
+  }
+
+  private generateVerificationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 }

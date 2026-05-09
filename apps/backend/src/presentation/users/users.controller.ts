@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Delete, Put, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Put,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { UserUseCase } from '../../domain/user/usecases/user.usecases';
 import { UserAddRequestDTO } from '../../domain/user/dto/user.add.request.dto';
 import { UserDeleteRequestDTO } from '../../domain/user/dto/user.delete.request.dto';
@@ -21,12 +36,12 @@ export class UsersController {
     return this.userUseCase.getList();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get user by internal ID' })
-  @ApiParam({ name: 'id', description: 'Internal user ID' })
+  @Get(':user_uuid')
+  @ApiOperation({ summary: 'Get user by UUID' })
+  @ApiParam({ name: 'user_uuid', description: 'User UUID' })
   @ApiResponse({ status: 200, description: 'User found' })
-  async getUser(@Param('id') id: string) {
-    return this.userUseCase.getByInternalId(parseInt(id));
+  async getUser(@Param('user_uuid') user_uuid: string) {
+    return this.userUseCase.getByUUID(user_uuid);
   }
 
   @Post('add')
