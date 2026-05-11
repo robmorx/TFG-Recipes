@@ -22,7 +22,26 @@ export class UserUseCase implements IUserUseCase {
     return this.userRepository.post(user);
   }
 
-  async login(credentials: { email: string; password: string }): Promise<{ token: string; user: User }> {
-    return this.userRepository.login(credentials);
+  async login(
+    credentials: { email: string; password: string },
+    rememberMe: boolean,
+  ): Promise<{ token: string; refreshToken: string; user: User }> {
+    return this.userRepository.login(credentials, rememberMe);
+  }
+
+  async verifyAccount(email: string, code: string): Promise<{ message: string }> {
+    return this.userRepository.verifyAccount(email, code);
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    return this.userRepository.forgotPassword(email);
+  }
+
+  async verifyResetCode(email: string, code: string): Promise<{ message: string }> {
+    return this.userRepository.verifyResetCode(email, code);
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string): Promise<{ message: string }> {
+    return this.userRepository.resetPassword(email, code, newPassword);
   }
 }

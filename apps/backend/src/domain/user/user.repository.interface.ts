@@ -10,8 +10,16 @@ export interface IUserRepository {
   update(uuid: string, entity: Partial<User>): Promise<number>;
   validatePassword(user: User, password: string): Promise<boolean>;
   updatePassword(uuid: string, hashedPassword: string): Promise<void>;
-  updateVerificationCode(uuid: string, code: string, expires: Date): Promise<void>;
+  updateVerificationCode(
+    uuid: string,
+    code: string,
+    expires: Date,
+  ): Promise<void>;
   verifyUser(uuid: string): Promise<void>;
-  updateResetPasswordCode(uuid: string, code: string, expires: Date): Promise<void>;
+  updateResetPasswordCode(
+    uuid: string,
+    code: string,
+    expires: Date,
+  ): Promise<void>;
   clearResetPasswordCode(uuid: string): Promise<void>;
 }

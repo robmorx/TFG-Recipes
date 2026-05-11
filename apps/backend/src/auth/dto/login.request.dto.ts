@@ -19,6 +19,9 @@ export class LoginResponseDTO {
   access_token: string;
 
   @ApiProperty()
+  refresh_token: string;
+
+  @ApiProperty()
   user_uuid: string;
 
   @ApiProperty()

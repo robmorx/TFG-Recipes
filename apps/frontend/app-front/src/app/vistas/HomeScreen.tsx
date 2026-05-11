@@ -1,5 +1,5 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar,
+  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
@@ -13,6 +13,7 @@ const C = {
   muted: '#8B8B8B',
   border: '#E0DCD4',
   accent: '#D4A574',
+  danger: '#E74C3C',
 };
 
 type MenuItemProps = {
@@ -39,7 +40,31 @@ function MenuItem({ icon, label, subtitle, onPress }: MenuItemProps) {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user } = useUserVM();
+  const { user, logout } = useUserVM();
+
+  const handleLogout = () => {
+    try {
+      Alert.alert(
+        'Cerrar Sesión',
+        '¿Estás seguro de que quieres cerrar sesión?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Salir',
+            style: 'destructive',
+            onPress: () => {
+              router.replace('/');
+              logout();
+            },
+          },
+        ]
+      );
+    } catch (err) {
+      console.error('Logout alert error:', err);
+      router.replace('/');
+      logout();
+    }
+  };
 
   return (
     <SafeAreaView style={s.safe}>
@@ -54,6 +79,14 @@ export default function HomeScreen() {
             <Text style={s.greeting}>Hola!</Text>
             <Text style={s.userName}>{user?.name || 'Usuario'}</Text>
           </View>
+          <TouchableOpacity
+            style={s.logoutBtn}
+            onPress={handleLogout}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={s.logoutIcon}>🚪</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={s.welcomeCard}>
@@ -113,6 +146,14 @@ const s = StyleSheet.create({
   headerText: { flex: 1 },
   greeting: { fontSize: 14, color: C.muted },
   userName: { fontSize: 20, fontWeight: '600', color: C.text },
+  logoutBtn: {
+    padding: 8,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoutIcon: { fontSize: 20 },
   welcomeCard: {
     backgroundColor: C.primary,
     borderRadius: 16,

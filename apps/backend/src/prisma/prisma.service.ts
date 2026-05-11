@@ -29,6 +29,10 @@ export class PrismaService implements OnModuleInit {
     return this._prisma.item;
   }
 
+  get refreshToken() {
+    return this._prisma.refreshToken;
+  }
+
   async onModuleInit() {
     await this._prisma.$connect();
   }

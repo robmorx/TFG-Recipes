@@ -23,7 +23,6 @@ import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Public } from '../../auth/public.decorator';
 
 @ApiTags('Users')
-@ApiBearerAuth()
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {

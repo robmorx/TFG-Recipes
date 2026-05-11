@@ -3,6 +3,7 @@ export const TYPES = {
   IUserRepository: Symbol.for('IUserRepository'),
   IRecipeRepository: Symbol.for('IRecipeRepository'),
   IInventoryRepository: Symbol.for('IInventoryRepository'),
+  IAuthRepository: Symbol.for('IAuthRepository'),
   IItemUseCase: Symbol.for('IItemUseCase'),
   IUserUseCase: Symbol.for('IUserUseCase'),
   IRecipeUseCase: Symbol.for('IRecipeUseCase'),

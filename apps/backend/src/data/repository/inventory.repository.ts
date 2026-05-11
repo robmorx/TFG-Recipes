@@ -27,6 +27,7 @@ export class InventoryRepository implements IInventoryRepository {
       data: {
         userId: entity.user_uuid,
       },
+      include: { items: true },
     });
     console.log('[DEBUG] Created inventory:', inventory);
     return this.mapToEntity(inventory);

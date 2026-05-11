@@ -5,6 +5,7 @@ import {
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const C = {
   bg: '#F5F2EB',
@@ -23,11 +24,12 @@ export default function LoginScreen() {
   const { login, isLoading } = useUserVM();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) return;
     try {
-      await login(email.trim(), password);
+      await login(email.trim(), password, rememberMe);
       router.replace('/vistas/HomeScreen');
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Credenciales inválidas');
@@ -35,6 +37,10 @@ export default function LoginScreen() {
   };
 
   const canLogin = email.trim().length > 0 && password.trim().length > 0;
+
+  const toggleRememberMe = () => {
+    setRememberMe(!rememberMe);
+  };
 
   return (
     <View style={s.container}>
@@ -76,6 +82,21 @@ export default function LoginScreen() {
             />
           </View>
 
+          <TouchableOpacity style={s.rememberMeRow} onPress={toggleRememberMe}>
+            <View style={[s.checkbox, rememberMe && s.checkboxChecked]}>
+              {rememberMe && (
+                <MaterialCommunityIcons name="check" size={16} color="#fff" />
+              )}
+            </View>
+            <Text style={s.rememberMeText}>Recordarme</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push('/vistas/ForgotPasswordScreen' as any)}
+          >
+            <Text style={s.forgotText}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[s.btn, !canLogin && s.btnDisabled]}
             onPress={handleLogin}
@@ -85,6 +106,15 @@ export default function LoginScreen() {
             <Text style={s.btnText}>{isLoading ? 'Entrando...' : 'Entrar'}</Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity
+          style={s.registerBtn}
+          onPress={() => router.push('/vistas/RegisterScreen' as any)}
+        >
+          <Text style={s.registerText}>
+            ¿No tienes cuenta? <Text style={s.registerHighlight}>Regístrate</Text>
+          </Text>
+        </TouchableOpacity>
       </KeyboardAvoidingView>
     </View>
   );
@@ -123,6 +153,30 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.border,
   },
+  rememberMeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  checkboxChecked: {
+    backgroundColor: C.primary,
+    borderColor: C.primary,
+  },
+  rememberMeText: {
+    fontSize: 14,
+    color: C.text,
+    fontWeight: '500',
+  },
   btn: {
     backgroundColor: C.primary,
     borderRadius: 12,
@@ -132,4 +186,15 @@ const s = StyleSheet.create({
   },
   btnDisabled: { backgroundColor: C.secondary, opacity: 0.6 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  forgotText: {
+    color: C.primary,
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'right',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  registerBtn: { marginTop: 24, alignItems: 'center' },
+  registerText: { color: C.muted, fontSize: 14 },
+  registerHighlight: { color: C.primary, fontWeight: '600' },
 });
