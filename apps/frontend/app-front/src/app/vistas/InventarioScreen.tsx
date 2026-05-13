@@ -1,7 +1,7 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   FlatList, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform,
-  ScrollView, Alert, ActivityIndicator, Modal,
+  ScrollView, Alert, Modal,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -9,19 +9,15 @@ import { useInventoryVM } from '../../presentation/viewmodel/InventoryVM';
 import { useItemVM } from '../../presentation/viewmodel/ItemVM';
 import { useAuth } from '../../presentation/context/AuthContext';
 import { Item, QuantityUnit } from '../../domain/entities/item';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBRadius, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 
-const C = {
-  bg: '#F5F2EB',
-  card: '#FFFFFF',
-  cardAlt: '#F0EDE5',
-  primary: '#6B8E6B',
-  secondary: '#A4C3A2',
-  text: '#3D3D3D',
-  muted: '#8B8B8B',
-  border: '#E0DCD4',
-  inputBg: '#F8F6F2',
-  danger: '#C97070',
-};
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const QUANTITY_UNIT_OPTIONS = [
   { value: QuantityUnit.UNITS, label: 'Und' },
@@ -30,12 +26,107 @@ const QUANTITY_UNIT_OPTIONS = [
   { value: QuantityUnit.GRAMS, label: 'g' },
 ];
 
+function AnimatedBackBtn({ onPress }: { onPress: () => void }) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedTouchable
+      onPress={onPress}
+      style={[s.backBtn, animatedStyle]}
+      activeOpacity={0.95}
+      onPressIn={() => {
+        scale.value = withTiming(0.95, { duration: 100 });
+        hapticLight();
+      }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: 200 }); }}
+    >
+      <MaterialCommunityIcons name="chevron-left" size={28} color={SBColors.TEXT_BLACK} />
+    </AnimatedTouchable>
+  );
+}
+
+function AnimatedFilterBtn({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedTouchable
+      style={[s.filterBtn, active && s.filterBtnActive, animatedStyle]}
+      onPress={onPress}
+      activeOpacity={0.95}
+      onPressIn={() => {
+        scale.value = withTiming(0.97, { duration: 100 });
+        hapticLight();
+      }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: 200 }); }}
+    >
+      <Text style={[s.filterBtnText, active && s.filterBtnTextActive]}>{label}</Text>
+    </AnimatedTouchable>
+  );
+}
+
+function AnimatedItemRow({
+  item,
+  onEdit,
+  onDelete,
+}: {
+  item: Item;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <View style={[s.itemRow, animatedStyle]}>
+      <View style={s.itemIcon}>
+        <MaterialCommunityIcons name="carrot" size={22} color={SBColors.GREEN_ACCENT} />
+      </View>
+      <View style={s.itemInfo}>
+        <Text style={s.itemName}>{item.name}</Text>
+        <Text style={s.itemQty}>{item.quantity} {getUnitLabel(item.quantityUnit as QuantityUnit)}</Text>
+      </View>
+      <TouchableOpacity
+        style={s.editBtn}
+        onPress={onEdit}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        onPressIn={hapticLight}
+      >
+        <MaterialCommunityIcons name="pencil-outline" size={18} color={SBColors.GREEN_ACCENT} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={s.deleteBtn}
+        onPress={onDelete}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        onPressIn={hapticLight}
+      >
+        <MaterialCommunityIcons name="close" size={18} color={SBColors.RED} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function InventarioScreen() {
   const router = useRouter();
   const { user } = useAuth();
   console.log('[DEBUG] InventarioScreen - User from useAuth:', user);
   console.log('[DEBUG] InventarioScreen - user_uuid:', user?.user_uuid);
-  
+
   const { inventory, loadInventory, isLoading } = useInventoryVM();
   const { addItem, removeItem, editItem } = useItemVM();
   const [name, setName] = useState('');
@@ -71,8 +162,8 @@ export default function InventarioScreen() {
   };
 
   const items = inventory?.items || [];
-  const filteredItems = filterUnit === 'ALL' 
-    ? items 
+  const filteredItems = filterUnit === 'ALL'
+    ? items
     : items.filter(item => (item.quantityUnit as string) === filterUnit);
 
   const handleDeleteItem = async (id: string) => {
@@ -116,7 +207,7 @@ export default function InventarioScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={SBColors.NEUTRAL_WARM} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -124,20 +215,18 @@ export default function InventarioScreen() {
         <View style={s.container}>
 
           <View style={s.navbar}>
-            <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.7}>
-              <Text style={s.backIcon}>‹</Text>
-            </TouchableOpacity>
+            <AnimatedBackBtn onPress={() => router.back()} />
             <Text style={s.navTitle}>Mi Inventario</Text>
             <View style={{ width: 36 }} />
           </View>
 
-          <View style={s.formCard}>
+          <ThemedCard padding="md" style={s.formCard}>
             <View style={s.field}>
               <Text style={s.label}>Alimento</Text>
               <TextInput
                 style={s.input}
                 placeholder="Ej: Pollo, Leche, Huevos..."
-                placeholderTextColor={C.muted}
+                placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
                 value={name}
                 onChangeText={setName}
                 returnKeyType="next"
@@ -150,23 +239,24 @@ export default function InventarioScreen() {
                 <TextInput
                   style={s.input}
                   placeholder="1"
-                  placeholderTextColor={C.muted}
+                  placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
                   value={quantity}
                   onChangeText={setQuantity}
                   keyboardType="numeric"
                   returnKeyType="done"
                 />
               </View>
-              <View style={[s.field, { flex: 1 }]}>
-                <Text style={s.label}>Unidad</Text>
-                <TouchableOpacity
-                  style={s.unitPicker}
-                  onPress={() => setShowUnitPicker(!showUnitPicker)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={s.unitPickerText}>{selectedUnitLabel}</Text>
-                  <Text style={s.unitPickerArrow}>▼</Text>
-                </TouchableOpacity>
+               <View style={[s.field, { flex: 1 }]}>
+                 <Text style={s.label}>Unidad</Text>
+                 <TouchableOpacity
+                   style={s.unitPicker}
+                   onPress={() => setShowUnitPicker(!showUnitPicker)}
+                   activeOpacity={0.7}
+                   onPressIn={hapticLight}
+                 >
+                   <Text style={s.unitPickerText}>{selectedUnitLabel}</Text>
+                   <MaterialCommunityIcons name="chevron-down" size={16} color={SBColors.TEXT_BLACK_SOFT} />
+                 </TouchableOpacity>
                 {showUnitPicker && (
                   <View style={s.unitDropdown}>
                     {QUANTITY_UNIT_OPTIONS.map(opt => (
@@ -188,32 +278,30 @@ export default function InventarioScreen() {
               </View>
             </View>
 
-            <TouchableOpacity
-              style={[s.addBtn, !name.trim() && s.addBtnDisabled]}
+            <ThemedButton
+              variant="primary-filled"
+              label="+ Añadir"
               onPress={handleAddItem}
-              activeOpacity={0.85}
               disabled={!name.trim()}
-            >
-              <Text style={s.addBtnText}>+ Añadir</Text>
-            </TouchableOpacity>
-          </View>
+              fullWidth
+              style={s.addBtn}
+            />
+          </ThemedCard>
 
           <View style={s.filterSection}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterScroll}>
-              <TouchableOpacity
-                style={[s.filterBtn, filterUnit === 'ALL' && s.filterBtnActive]}
+              <AnimatedFilterBtn
+                label="Todos"
+                active={filterUnit === 'ALL'}
                 onPress={() => setFilterUnit('ALL')}
-              >
-                <Text style={[s.filterBtnText, filterUnit === 'ALL' && s.filterBtnTextActive]}>Todos</Text>
-              </TouchableOpacity>
+              />
               {QUANTITY_UNIT_OPTIONS.map(opt => (
-                <TouchableOpacity
+                <AnimatedFilterBtn
                   key={opt.value}
-                  style={[s.filterBtn, filterUnit === opt.value && s.filterBtnActive]}
+                  label={opt.label}
+                  active={filterUnit === opt.value}
                   onPress={() => setFilterUnit(opt.value)}
-                >
-                  <Text style={[s.filterBtnText, filterUnit === opt.value && s.filterBtnTextActive]}>{opt.label}</Text>
-                </TouchableOpacity>
+                />
               ))}
             </ScrollView>
           </View>
@@ -229,38 +317,20 @@ export default function InventarioScreen() {
               contentContainerStyle={s.list}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
-                <View style={s.itemRow}>
-                  <View style={[s.itemIcon, { backgroundColor: C.secondary }]}>
-                    <Text style={s.itemEmoji}>🥕</Text>
-                  </View>
-                  <View style={s.itemInfo}>
-                    <Text style={s.itemName}>{item.name}</Text>
-                    <Text style={s.itemQty}>{item.quantity} {getUnitLabel(item.quantityUnit as QuantityUnit)}</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={s.editBtn}
-                    onPress={() => handleEditItem(item)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={s.editIcon}>✎</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={s.deleteBtn}
-                    onPress={() => handleDeleteItem(item.id)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={s.deleteIcon}>✕</Text>
-                  </TouchableOpacity>
-                </View>
+                <AnimatedItemRow
+                  item={item}
+                  onEdit={() => handleEditItem(item)}
+                  onDelete={() => handleDeleteItem(item.id)}
+                />
               )}
             />
-          ) : (
-            <View style={s.empty}>
-              <Text style={s.emptyIcon}>🧺</Text>
-              <Text style={s.emptyText}>Inventario vacío</Text>
-              <Text style={s.emptySub}>Añade los alimentos que tienes</Text>
-            </View>
-          )}
+           ) : (
+             <View style={s.empty}>
+               <MaterialCommunityIcons name="basket-outline" size={52} color={SBColors.GREEN_ACCENT} style={s.emptyIcon} />
+               <Text style={s.emptyText}>Inventario vacío</Text>
+               <Text style={s.emptySub}>Añade los alimentos que tienes</Text>
+             </View>
+           )}
 
         </View>
       </KeyboardAvoidingView>
@@ -272,7 +342,7 @@ export default function InventarioScreen() {
         onRequestClose={handleCloseModal}
       >
         <View style={s.modalOverlay}>
-          <View style={s.modalCard}>
+          <ThemedCard padding="lg" style={s.modalCard}>
             <Text style={s.modalTitle}>Editar Artículo</Text>
             <Text style={s.modalItemName}>{editingItem?.name}</Text>
 
@@ -307,11 +377,15 @@ export default function InventarioScreen() {
               <TouchableOpacity style={s.modalCancelBtn} onPress={handleCloseModal}>
                 <Text style={s.modalCancelText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.modalSaveBtn} onPress={handleSaveEdit}>
-                <Text style={s.modalSaveText}>Guardar</Text>
-              </TouchableOpacity>
+              <ThemedButton
+                variant="primary-filled"
+                label="Guardar"
+                onPress={handleSaveEdit}
+                fullWidth={false}
+                style={s.modalSaveBtn}
+              />
             </View>
-          </View>
+          </ThemedCard>
         </View>
       </Modal>
 
@@ -326,127 +400,210 @@ function getUnitLabel(unit?: QuantityUnit): string {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-  container: { flex: 1, paddingHorizontal: 20 },
+  safe: { flex: 1, backgroundColor: SBColors.NEUTRAL_WARM },
+  container: { flex: 1, paddingHorizontal: SBSpacing.outerGutter },
   navbar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 12, paddingBottom: 16,
+    paddingTop: 12, paddingBottom: SBSpacing.space4,
   },
   backBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
+    backgroundColor: SBColors.WHITE, borderWidth: 1, borderColor: SBColors.CERAMIC,
     alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.14,
+    shadowRadius: 0.5,
+    elevation: 1,
   },
-  backIcon: { fontSize: 22, color: C.text, lineHeight: 26 },
-  navTitle: { fontSize: 18, fontWeight: '600', color: C.text },
+  navTitle: {
+    fontSize: 18,
+    fontFamily: SBFonts.semibold,
+    color: SBColors.STARBUCKS_GREEN,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   formCard: {
-    backgroundColor: C.card, borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: C.border, marginBottom: 16,
+    marginBottom: SBSpacing.space4,
   },
-  field: { marginBottom: 12 },
-  label: { fontSize: 12, fontWeight: '600', color: C.text, marginBottom: 6 },
+  field: { marginBottom: SBSpacing.space3 },
+  label: {
+    fontSize: 12,
+    fontFamily: SBFonts.semibold,
+    color: SBColors.TEXT_BLACK,
+    marginBottom: 6,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   input: {
-    backgroundColor: C.inputBg, borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 14, color: C.text, borderWidth: 1, borderColor: C.border,
+    backgroundColor: SBColors.NEUTRAL_WARM,
+    borderRadius: 12,
+    paddingHorizontal: SBSpacing.space3,
+    paddingVertical: 12,
+    fontSize: 14,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK,
+    borderWidth: 1,
+    borderColor: SBColors.CERAMIC,
+    letterSpacing: SBType.letterSpacingNormal,
   },
   rowFields: { flexDirection: 'row' },
   unitPicker: {
-    backgroundColor: C.inputBg, borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 12,
-    borderWidth: 1, borderColor: C.border,
+    backgroundColor: SBColors.NEUTRAL_WARM,
+    borderRadius: 12,
+    paddingHorizontal: SBSpacing.space3,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: SBColors.CERAMIC,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  unitPickerText: { fontSize: 14, color: C.text },
-  unitPickerArrow: { fontSize: 10, color: C.muted },
+  unitPickerText: {
+    fontSize: 14,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  unitPickerArrow: { fontSize: 10, color: SBColors.TEXT_BLACK_SOFT },
   unitDropdown: {
     position: 'absolute', top: 66, left: 0, right: 0,
-    backgroundColor: C.card, borderRadius: 10,
-    borderWidth: 1, borderColor: C.border,
-    zIndex: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
+    backgroundColor: SBColors.WHITE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: SBColors.CERAMIC,
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.24,
+    shadowRadius: 1,
+    elevation: 2,
   },
-  unitOption: { paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: C.border },
-  unitOptionActive: { backgroundColor: C.secondary },
-  unitOptionText: { fontSize: 14, color: C.text },
-  unitOptionTextActive: { color: '#fff', fontWeight: '600' },
+  unitOption: {
+    paddingVertical: 10,
+    paddingHorizontal: SBSpacing.space3,
+    borderBottomWidth: 1,
+    borderBottomColor: SBColors.CERAMIC,
+  },
+  unitOptionActive: { backgroundColor: SBColors.GREEN_LIGHT },
+  unitOptionText: {
+    fontSize: 14,
+    color: SBColors.TEXT_BLACK,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  unitOptionTextActive: { color: SBColors.GREEN_ACCENT, fontWeight: '600' },
   addBtn: {
-    backgroundColor: C.primary, borderRadius: 10, paddingVertical: 14,
-    alignItems: 'center', marginTop: 4,
+    marginTop: 4,
   },
-  addBtnDisabled: { backgroundColor: C.cardAlt },
-  addBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  filterSection: { marginBottom: 12 },
+  filterSection: { marginBottom: SBSpacing.space3 },
   filterScroll: { gap: 8 },
   filterBtn: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: C.cardAlt, borderWidth: 1, borderColor: C.border,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 50,
+    backgroundColor: SBColors.NEUTRAL_WARM,
+    borderWidth: 1,
+    borderColor: SBColors.CERAMIC,
   },
-  filterBtnActive: { backgroundColor: C.primary, borderColor: C.primary },
-  filterBtnText: { fontSize: 12, color: C.muted, fontWeight: '500' },
-  filterBtnTextActive: { color: '#fff' },
+  filterBtnActive: { backgroundColor: SBColors.GREEN_ACCENT, borderColor: SBColors.GREEN_ACCENT },
+  filterBtnText: {
+    fontSize: 12,
+    fontFamily: SBFonts.medium,
+    color: SBColors.TEXT_BLACK_SOFT,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  filterBtnTextActive: { color: SBColors.WHITE },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { fontSize: 14, color: C.muted },
+  loadingText: {
+    fontSize: 14,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK_SOFT,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   list: { gap: 10, paddingBottom: 24 },
   itemRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: C.card, borderRadius: 12,
+    backgroundColor: SBColors.WHITE,
+    borderRadius: SBRadius.card,
     paddingVertical: 12, paddingHorizontal: 12,
-    borderWidth: 1, borderColor: C.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.24,
+    shadowRadius: 1,
+    elevation: 2,
   },
   itemIcon: {
     width: 40, height: 40, borderRadius: 10,
+    backgroundColor: SBColors.GREEN_LIGHT,
     alignItems: 'center', justifyContent: 'center', marginRight: 12,
   },
-  itemEmoji: { fontSize: 20 },
   itemInfo: { flex: 1 },
-  itemName: { fontSize: 15, color: C.text, fontWeight: '500' },
-  itemQty: { fontSize: 12, color: C.muted, marginTop: 2 },
+  itemName: {
+    fontSize: 15, color: SBColors.TEXT_BLACK, fontFamily: SBFonts.medium,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  itemQty: {
+    fontSize: 12, color: SBColors.TEXT_BLACK_SOFT, marginTop: 2,
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   deleteBtn: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: C.cardAlt, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: SBColors.NEUTRAL_WARM, alignItems: 'center', justifyContent: 'center',
   },
-  deleteIcon: { fontSize: 10, color: C.danger, fontWeight: '700' },
+  editBtn: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: SBColors.NEUTRAL_WARM, alignItems: 'center', justifyContent: 'center',
+  },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 60 },
-  emptyIcon: { fontSize: 48, marginBottom: 14 },
-  emptyText: { fontSize: 16, fontWeight: '600', color: C.text, marginBottom: 6 },
-  emptySub: { fontSize: 13, color: C.muted, textAlign: 'center' },
+  emptyIcon: { marginBottom: 14 },
+  emptyText: {
+    fontSize: 16, fontFamily: SBFonts.semibold, color: SBColors.TEXT_BLACK, marginBottom: 6,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  emptySub: {
+    fontSize: 13, color: SBColors.TEXT_BLACK_SOFT, textAlign: 'center',
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 20,
   },
   modalCard: {
-    backgroundColor: C.card, borderRadius: 16,
-    padding: 24, width: '100%', maxWidth: 400,
-    borderWidth: 1, borderColor: C.border,
+    width: '100%', maxWidth: 400,
   },
-  modalTitle: { fontSize: 18, fontWeight: '600', color: C.text, marginBottom: 4 },
-  modalItemName: { fontSize: 14, color: C.muted, marginBottom: 20 },
-  modalField: { marginBottom: 16 },
+  modalTitle: {
+    fontSize: 18, fontFamily: SBFonts.semibold, color: SBColors.STARBUCKS_GREEN, marginBottom: 4,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  modalItemName: {
+    fontSize: 14, color: SBColors.TEXT_BLACK_SOFT, marginBottom: 20,
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  modalField: { marginBottom: SBSpacing.space4 },
   unitRow: { flexDirection: 'row', gap: 8 },
   unitChip: {
     paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: 20, backgroundColor: C.cardAlt,
-    borderWidth: 1, borderColor: C.border,
+    borderRadius: 50, backgroundColor: SBColors.NEUTRAL_WARM,
+    borderWidth: 1, borderColor: SBColors.CERAMIC,
   },
-  unitChipActive: { backgroundColor: C.primary, borderColor: C.primary },
-  unitChipText: { fontSize: 14, color: C.text },
-  unitChipTextActive: { color: '#fff', fontWeight: '500' },
+  unitChipActive: { backgroundColor: SBColors.GREEN_ACCENT, borderColor: SBColors.GREEN_ACCENT },
+  unitChipText: {
+    fontSize: 14, color: SBColors.TEXT_BLACK,
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  unitChipTextActive: { color: SBColors.WHITE, fontFamily: SBFonts.medium },
   modalActions: { flexDirection: 'row', gap: 12, marginTop: 8 },
   modalCancelBtn: {
-    flex: 1, paddingVertical: 12, borderRadius: 10,
-    backgroundColor: C.cardAlt, alignItems: 'center',
+    flex: 1, paddingVertical: 14, borderRadius: 50,
+    backgroundColor: SBColors.NEUTRAL_WARM, alignItems: 'center',
+    borderWidth: 1, borderColor: SBColors.CERAMIC,
   },
-  modalCancelText: { fontSize: 15, color: C.text, fontWeight: '500' },
+  modalCancelText: {
+    fontSize: 15, color: SBColors.TEXT_BLACK, fontFamily: SBFonts.medium,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   modalSaveBtn: {
-    flex: 1, paddingVertical: 12, borderRadius: 10,
-    backgroundColor: C.primary, alignItems: 'center',
+    flex: 1,
   },
-  modalSaveText: { fontSize: 15, color: '#fff', fontWeight: '600' },
-  editBtn: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: C.cardAlt, alignItems: 'center', justifyContent: 'center',
-  },
-  editIcon: { fontSize: 10, color: C.primary, fontWeight: '600' },
 });

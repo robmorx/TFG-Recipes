@@ -1,8 +1,32 @@
 import { Stack } from "expo-router";
 import { AuthProvider } from "../presentation/context/AuthContext";
 import "reflect-metadata";
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
+import { View, Text, StyleSheet } from "react-native";
+import { SBColors, SBFonts, SBType } from "../presentation/theme";
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  if (!fontsLoaded && !fontError) {
+    return (
+      <View style={s.loadingContainer}>
+        <Text style={s.loadingText}>Mi Cocina</Text>
+      </View>
+    );
+  }
+
   return (
     <AuthProvider>
       <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
@@ -22,3 +46,18 @@ export default function RootLayout() {
     </AuthProvider>
   );
 }
+
+const s = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: SBColors.NEUTRAL_WARM,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    fontSize: 24,
+    fontFamily: SBFonts.bold,
+    color: SBColors.GREEN_ACCENT,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+});

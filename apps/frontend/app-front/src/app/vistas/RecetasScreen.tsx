@@ -6,27 +6,31 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useRecipeVM } from '../../presentation/viewmodel/RecipeVM';
 import { Recipe, RecipeType } from '../../domain/entities/recipe';
+import { SBColors, SBSpacing, SBRadius, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 
-const C = {
-  bg: '#F5F2EB',
-  card: '#FFFFFF',
-  cardAlt: '#F0EDE5',
-  primary: '#6B8E6B',
-  secondary: '#A4C3A2',
-  text: '#3D3D3D',
-  muted: '#8B8B8B',
-  border: '#E0DCD4',
-  danger: '#C97070',
-  accent: '#D4A574',
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+type RecipeTypeOption = {
+  value: RecipeType;
+  label: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
 };
 
-const RECIPE_TYPE_OPTIONS = [
-  { value: RecipeType.BREAKFAST, label: 'Desayuno', icon: '🌅' },
-  { value: RecipeType.LUNCH, label: 'Comida', icon: '☀️' },
-  { value: RecipeType.DINNER, label: 'Cena', icon: '🌙' },
+const RECIPE_TYPE_OPTIONS: RecipeTypeOption[] = [
+  { value: RecipeType.BREAKFAST, label: 'Desayuno', icon: 'weather-sunset-up' },
+  { value: RecipeType.LUNCH, label: 'Comida', icon: 'weather-sunny' },
+  { value: RecipeType.DINNER, label: 'Cena', icon: 'weather-night' },
 ];
 
-const RECIPE_ICONS = ['🍳', '🥗', '🍝', '🥘', '🍲', '🥙'];
+const RECIPE_ICONS: (keyof typeof MaterialCommunityIcons.glyphMap)[] = [
+  'egg-fried', 'food-variant', 'noodle', 'pot-steam', 'soup', 'sandwich'
+];
 
 export default function RecetasScreen() {
   const router = useRouter();
@@ -37,8 +41,8 @@ export default function RecetasScreen() {
     loadRecipes();
   }, []);
 
-  const filteredRecipes = filterType === 'ALL' 
-    ? recipes 
+  const filteredRecipes = filterType === 'ALL'
+    ? recipes
     : recipes.filter(r => r.type === filterType);
 
   const handleDelete = (id: string) => {
@@ -49,38 +53,48 @@ export default function RecetasScreen() {
     router.push(`/vistas/RecetaDetalleScreen?id=${recipe.recipe_uuid}`);
   };
 
-  const getRecipeIcon = (index: number) => RECIPE_ICONS[index % RECIPE_ICONS.length];
+  const backScale = useSharedValue(1);
+  const backAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: backScale.value }],
+  }));
 
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={SBColors.NEUTRAL_WARM} />
       <View style={s.container}>
 
-        <View style={s.navbar}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.7}>
-            <Text style={s.backIcon}>‹</Text>
-          </TouchableOpacity>
-          <Text style={s.navTitle}>Mis Recetas</Text>
-          <View style={{ width: 36 }} />
-        </View>
+         <View style={s.navbar}>
+           <AnimatedTouchable
+             onPress={() => router.back()}
+             style={[s.backBtn, backAnimatedStyle]}
+             activeOpacity={0.95}
+             onPressIn={() => {
+               backScale.value = withTiming(0.95, { duration: 100 });
+               hapticLight();
+             }}
+             onPressOut={() => { backScale.value = withTiming(1, { duration: 200 }); }}
+           >
+             <MaterialCommunityIcons name="chevron-left" size={28} color={SBColors.TEXT_BLACK} />
+           </AnimatedTouchable>
+           <Text style={s.navTitle}>Mis Recetas</Text>
+           <View style={{ width: 36 }} />
+         </View>
 
         <View style={s.filterSection}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterScroll}>
-            <TouchableOpacity
-              style={[s.filterBtn, filterType === 'ALL' && s.filterBtnActive]}
+            <FilterButton
+              label="Todas"
+              active={filterType === 'ALL'}
               onPress={() => setFilterType('ALL')}
-            >
-              <Text style={[s.filterBtnText, filterType === 'ALL' && s.filterBtnTextActive]}>Todas</Text>
-            </TouchableOpacity>
+            />
             {RECIPE_TYPE_OPTIONS.map(opt => (
-              <TouchableOpacity
+              <FilterButton
                 key={opt.value}
-                style={[s.filterBtn, filterType === opt.value && s.filterBtnActive]}
+                label={opt.label}
+                icon={opt.icon}
+                active={filterType === opt.value}
                 onPress={() => setFilterType(opt.value)}
-              >
-                <Text style={s.filterIcon}>{opt.icon}</Text>
-                <Text style={[s.filterBtnText, filterType === opt.value && s.filterBtnTextActive]}>{opt.label}</Text>
-              </TouchableOpacity>
+              />
             ))}
           </ScrollView>
         </View>
@@ -104,43 +118,113 @@ export default function RecetasScreen() {
             renderItem={({ item, index }) => {
               const typeLabel = getTypeLabel(item.type);
               return (
-                <TouchableOpacity
-                  style={s.row}
+                <RecipeRow
+                  item={item}
+                  index={index}
+                  typeLabel={typeLabel}
                   onPress={() => handleSelect(item)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[s.iconBox, { backgroundColor: C.secondary }]}>
-                    <Text style={s.recipeIcon}>{getRecipeIcon(index)}</Text>
-                  </View>
-                  <View style={s.recipeInfo}>
-                    <Text style={s.name} numberOfLines={1}>{item.name || 'Sin nombre'}</Text>
-                    {item.type && (
-                      <View style={s.typeTag}>
-                        <Text style={s.typeTagText}>{typeLabel}</Text>
-                      </View>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    style={s.deleteBtn}
-                    onPress={() => handleDelete(item.recipe_uuid)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={s.deleteIcon}>✕</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
+                  onDelete={() => handleDelete(item.recipe_uuid)}
+                />
               );
             }}
           />
-        ) : (
-          <View style={s.empty}>
-            <Text style={s.emptyIcon}>📖</Text>
-            <Text style={s.emptyText}>Sin recetas</Text>
-            <Text style={s.emptySub}>Toca + en inicio para crear una</Text>
-          </View>
-        )}
+         ) : (
+           <View style={s.empty}>
+             <MaterialCommunityIcons name="book-open-variant" size={56} color={SBColors.STARBUCKS_GREEN} style={s.emptyIcon} />
+             <Text style={s.emptyText}>Sin recetas</Text>
+             <Text style={s.emptySub}>Toca + en inicio para crear una</Text>
+           </View>
+         )}
 
       </View>
     </SafeAreaView>
+  );
+}
+
+function FilterButton({
+  label,
+  icon,
+  active,
+  onPress,
+}: {
+  label: string;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedTouchable
+      style={[s.filterBtn, active && s.filterBtnActive, animatedStyle]}
+      onPress={onPress}
+      activeOpacity={0.95}
+      onPressIn={() => {
+        scale.value = withTiming(0.97, { duration: 100 });
+        hapticLight();
+      }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: 200 }); }}
+    >
+      {icon && <MaterialCommunityIcons name={icon} size={18} color={active ? SBColors.WHITE : SBColors.TEXT_BLACK_SOFT} />}
+      <Text style={[s.filterBtnText, active && s.filterBtnTextActive]}>{label}</Text>
+    </AnimatedTouchable>
+  );
+}
+
+function RecipeRow({
+  item,
+  index,
+  typeLabel,
+  onPress,
+  onDelete,
+}: {
+  item: Recipe;
+  index: number;
+  typeLabel: string;
+  onPress: () => void;
+  onDelete: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const iconIndex = index % RECIPE_ICONS.length;
+
+  return (
+    <AnimatedTouchable
+      style={[s.row, animatedStyle]}
+      onPress={onPress}
+      activeOpacity={0.95}
+      onPressIn={() => {
+        scale.value = withTiming(0.98, { duration: 100 });
+        hapticLight();
+      }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: 200 }); }}
+    >
+      <View style={s.iconBox}>
+        <MaterialCommunityIcons name={RECIPE_ICONS[iconIndex]} size={26} color={SBColors.GREEN_ACCENT} />
+      </View>
+      <View style={s.recipeInfo}>
+        <Text style={s.name} numberOfLines={1}>{item.name || 'Sin nombre'}</Text>
+        {typeLabel ? (
+          <View style={s.typeTag}>
+            <Text style={s.typeTagText}>{typeLabel}</Text>
+          </View>
+        ) : null}
+      </View>
+      <TouchableOpacity
+        style={s.deleteBtn}
+        onPress={onDelete}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        onPressIn={hapticLight}
+      >
+        <MaterialCommunityIcons name="close" size={18} color={SBColors.RED} />
+      </TouchableOpacity>
+    </AnimatedTouchable>
   );
 }
 
@@ -151,63 +235,105 @@ function getTypeLabel(type?: RecipeType): string {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-  container: { flex: 1, paddingHorizontal: 20 },
+  safe: { flex: 1, backgroundColor: SBColors.NEUTRAL_WARM },
+  container: { flex: 1, paddingHorizontal: SBSpacing.outerGutter },
   navbar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 12, paddingBottom: 16,
+    paddingTop: 12, paddingBottom: SBSpacing.space4,
   },
   backBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
+    backgroundColor: SBColors.WHITE, borderWidth: 1, borderColor: SBColors.CERAMIC,
     alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.14,
+    shadowRadius: 0.5,
+    elevation: 1,
   },
-  backIcon: { fontSize: 22, color: C.text, lineHeight: 26 },
-  navTitle: { fontSize: 18, fontWeight: '600', color: C.text },
-  filterSection: { marginBottom: 12 },
+  navTitle: {
+    fontSize: 18,
+    fontFamily: SBFonts.semibold,
+    color: SBColors.STARBUCKS_GREEN,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  filterSection: { marginBottom: SBSpacing.space3 },
   filterScroll: { gap: 8 },
   filterBtn: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 50,
+    backgroundColor: SBColors.WHITE, borderWidth: 1, borderColor: SBColors.CERAMIC,
     gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.14,
+    shadowRadius: 0.5,
+    elevation: 1,
   },
-  filterBtnActive: { backgroundColor: C.primary, borderColor: C.primary },
+  filterBtnActive: { backgroundColor: SBColors.GREEN_ACCENT, borderColor: SBColors.GREEN_ACCENT },
   filterIcon: { fontSize: 14 },
-  filterBtnText: { fontSize: 13, color: C.muted, fontWeight: '500' },
-  filterBtnTextActive: { color: '#fff' },
-  statsRow: { marginBottom: 12 },
-  statsText: { fontSize: 13, color: C.muted },
+  filterBtnText: {
+    fontSize: 13, color: SBColors.TEXT_BLACK_SOFT, fontFamily: SBFonts.medium,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  filterBtnTextActive: { color: SBColors.WHITE },
+  statsRow: { marginBottom: SBSpacing.space3 },
+  statsText: {
+    fontSize: 13, color: SBColors.TEXT_BLACK_SOFT,
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { fontSize: 14, color: C.muted },
+  loadingText: {
+    fontSize: 14, color: SBColors.TEXT_BLACK_SOFT,
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   list: { gap: 10, paddingBottom: 24 },
   row: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: C.card, borderRadius: 14,
+    backgroundColor: SBColors.WHITE, borderRadius: SBRadius.card,
     paddingVertical: 14, paddingHorizontal: 14,
-    borderWidth: 1, borderColor: C.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.24,
+    shadowRadius: 1,
+    elevation: 2,
   },
   iconBox: {
     width: 48, height: 48, borderRadius: 12,
+    backgroundColor: SBColors.GREEN_LIGHT,
     alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
-  recipeIcon: { fontSize: 24 },
   recipeInfo: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: C.text },
+  name: {
+    fontSize: 15, fontFamily: SBFonts.semibold, color: SBColors.TEXT_BLACK,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   typeTag: {
     alignSelf: 'flex-start',
-    backgroundColor: C.cardAlt,
+    backgroundColor: SBColors.NEUTRAL_WARM,
     paddingHorizontal: 8, paddingVertical: 2,
     borderRadius: 8, marginTop: 4,
   },
-  typeTagText: { fontSize: 11, color: C.muted },
+  typeTagText: {
+    fontSize: 11, color: SBColors.TEXT_BLACK_SOFT,
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   deleteBtn: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: C.cardAlt, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: SBColors.NEUTRAL_WARM, alignItems: 'center', justifyContent: 'center',
   },
-  deleteIcon: { fontSize: 10, color: C.danger, fontWeight: '700' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 },
-  emptyIcon: { fontSize: 56, marginBottom: 14 },
-  emptyText: { fontSize: 17, fontWeight: '600', color: C.text, marginBottom: 6 },
-  emptySub: { fontSize: 13, color: C.muted, textAlign: 'center' },
+  emptyIcon: { marginBottom: 14 },
+  emptyText: {
+    fontSize: 17, fontFamily: SBFonts.semibold, color: SBColors.TEXT_BLACK, marginBottom: 6,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  emptySub: {
+    fontSize: 13, color: SBColors.TEXT_BLACK_SOFT, textAlign: 'center',
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
 });

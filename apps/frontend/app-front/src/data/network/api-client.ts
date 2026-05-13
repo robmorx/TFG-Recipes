@@ -1,6 +1,6 @@
 import { tokenStorageService } from '../../core/token-storage.service';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL ;//|| 'http://localhost:3000/api';
 const FETCH_TIMEOUT_MS = 10000;
 
 class ApiClient {

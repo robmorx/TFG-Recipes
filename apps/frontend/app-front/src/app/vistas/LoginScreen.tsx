@@ -6,18 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
-const C = {
-  bg: '#F5F2EB',
-  card: '#FFFFFF',
-  primary: '#6B8E6B',
-  secondary: '#A4C3A2',
-  text: '#3D3D3D',
-  muted: '#8B8B8B',
-  border: '#E0DCD4',
-  inputBg: '#F8F6F2',
-  accent: '#D4A574',
-};
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts } from '../../presentation/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -44,18 +33,18 @@ export default function LoginScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={SBColors.NEUTRAL_WARM} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={s.inner}
       >
-        <View style={s.logoSection}>
-          <Text style={s.logoIcon}>🥗</Text>
-          <Text style={s.logoTitle}>Mi Cocina</Text>
-          <Text style={s.logoSubtitle}>Gestiona tus recetas</Text>
-        </View>
+         <View style={s.logoSection}>
+           <MaterialCommunityIcons name="food-variant" size={56} color={SBColors.STARBUCKS_GREEN} style={s.logoIcon} />
+           <Text style={s.logoTitle}>Mi Cocina</Text>
+           <Text style={s.logoSubtitle}>Gestiona tus recetas</Text>
+         </View>
 
-        <View style={s.card}>
+        <ThemedCard padding="lg" style={s.card}>
           <Text style={s.title}>Bienvenido</Text>
 
           <View style={s.field}>
@@ -63,7 +52,7 @@ export default function LoginScreen() {
             <TextInput
               style={s.input}
               placeholder="Ingresa tu usuario"
-              placeholderTextColor={C.muted}
+              placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -75,7 +64,7 @@ export default function LoginScreen() {
             <TextInput
               style={s.input}
               placeholder="Ingresa tu contraseña"
-              placeholderTextColor={C.muted}
+              placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -85,7 +74,7 @@ export default function LoginScreen() {
           <TouchableOpacity style={s.rememberMeRow} onPress={toggleRememberMe}>
             <View style={[s.checkbox, rememberMe && s.checkboxChecked]}>
               {rememberMe && (
-                <MaterialCommunityIcons name="check" size={16} color="#fff" />
+                <MaterialCommunityIcons name="check" size={14} color={SBColors.WHITE} />
               )}
             </View>
             <Text style={s.rememberMeText}>Recordarme</Text>
@@ -97,15 +86,17 @@ export default function LoginScreen() {
             <Text style={s.forgotText}>¿Olvidaste tu contraseña?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[s.btn, !canLogin && s.btnDisabled]}
-            onPress={handleLogin}
-            activeOpacity={0.85}
-            disabled={!canLogin || isLoading}
-          >
-            <Text style={s.btnText}>{isLoading ? 'Entrando...' : 'Entrar'}</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={s.btnWrapper}>
+            <ThemedButton
+              variant="primary-filled"
+              label={isLoading ? 'Entrando...' : 'Entrar'}
+              onPress={handleLogin}
+              disabled={!canLogin || isLoading}
+              loading={isLoading}
+              fullWidth
+            />
+          </View>
+        </ThemedCard>
 
         <TouchableOpacity
           style={s.registerBtn}
@@ -121,80 +112,105 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
-  logoSection: { alignItems: 'center', marginBottom: 32 },
-  logoIcon: { fontSize: 56, marginBottom: 12 },
-  logoTitle: { fontSize: 26, fontWeight: '700', color: C.text },
-  logoSubtitle: { fontSize: 14, color: C.muted, marginTop: 4 },
+  container: { flex: 1, backgroundColor: SBColors.NEUTRAL_WARM },
+  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: SBSpacing.outerGutter },
+  logoSection: { alignItems: 'center', marginBottom: SBSpacing.space6 },
+  logoIcon: { marginBottom: SBSpacing.space3 },
+  logoTitle: {
+    fontSize: 26,
+    fontFamily: SBFonts.bold,
+    color: SBColors.STARBUCKS_GREEN,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  logoSubtitle: {
+    fontSize: 14,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK_SOFT,
+    marginTop: 4,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   card: {
-    backgroundColor: C.card,
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: C.border,
+    marginHorizontal: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.24,
+    shadowRadius: 1,
+    elevation: 2,
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
-    color: C.text,
-    marginBottom: 20,
+    fontFamily: SBFonts.semibold,
+    color: SBColors.STARBUCKS_GREEN,
+    marginBottom: SBSpacing.space5,
     textAlign: 'center',
+    letterSpacing: SBType.letterSpacingNormal,
   },
-  field: { marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 6 },
+  field: { marginBottom: SBSpacing.space3 },
+  label: {
+    fontSize: 13,
+    fontFamily: SBFonts.semibold,
+    color: SBColors.TEXT_BLACK,
+    marginBottom: 6,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   input: {
-    backgroundColor: C.inputBg,
+    backgroundColor: SBColors.NEUTRAL_WARM,
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: SBSpacing.space3,
     paddingVertical: 14,
     fontSize: 15,
-    color: C.text,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: SBColors.CERAMIC,
+    letterSpacing: SBType.letterSpacingNormal,
   },
   rememberMeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SBSpacing.space2,
   },
   checkbox: {
     width: 20,
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: C.border,
+    borderColor: SBColors.CERAMIC,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   checkboxChecked: {
-    backgroundColor: C.primary,
-    borderColor: C.primary,
+    backgroundColor: SBColors.GREEN_ACCENT,
+    borderColor: SBColors.GREEN_ACCENT,
   },
   rememberMeText: {
     fontSize: 14,
-    color: C.text,
-    fontWeight: '500',
+    color: SBColors.TEXT_BLACK,
+    fontFamily: SBFonts.medium,
+    letterSpacing: SBType.letterSpacingNormal,
   },
-  btn: {
-    backgroundColor: C.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  btnDisabled: { backgroundColor: C.secondary, opacity: 0.6 },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   forgotText: {
-    color: C.primary,
+    color: SBColors.GREEN_ACCENT,
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: SBFonts.medium,
     textAlign: 'right',
     marginTop: 4,
-    marginBottom: 4,
+    marginBottom: SBSpacing.space3,
+    letterSpacing: SBType.letterSpacingNormal,
   },
-  registerBtn: { marginTop: 24, alignItems: 'center' },
-  registerText: { color: C.muted, fontSize: 14 },
-  registerHighlight: { color: C.primary, fontWeight: '600' },
+  btnWrapper: {
+    marginTop: SBSpacing.space2,
+  },
+  registerBtn: { marginTop: SBSpacing.space6, alignItems: 'center' },
+  registerText: {
+    color: SBColors.TEXT_BLACK_SOFT,
+    fontSize: 14,
+    fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  registerHighlight: {
+    color: SBColors.GREEN_ACCENT,
+    fontFamily: SBFonts.semibold,
+  },
 });

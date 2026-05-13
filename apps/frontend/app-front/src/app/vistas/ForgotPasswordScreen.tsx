@@ -5,18 +5,8 @@ import {
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
-
-const C = {
-  bg: '#F5F2EB',
-  card: '#FFFFFF',
-  primary: '#6B8E6B',
-  secondary: '#A4C3A2',
-  text: '#3D3D3D',
-  muted: '#8B8B8B',
-  border: '#E0DCD4',
-  inputBg: '#F8F6F2',
-  accent: '#D4A574',
-};
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -35,26 +25,26 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={SBColors.NEUTRAL_WARM} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={s.inner}
       >
         <View style={s.logoSection}>
-          <Text style={s.logoIcon}>🔑</Text>
+          <MaterialCommunityIcons name="key-variant" size={56} color={SBColors.STARBUCKS_GREEN} style={s.logoIcon} />
           <Text style={s.logoTitle}>Recuperar contraseña</Text>
           <Text style={s.logoSubtitle}>
             Te enviaremos un código para restablecer tu contraseña
           </Text>
         </View>
 
-        <View style={s.card}>
+        <ThemedCard padding="lg">
           <View style={s.field}>
             <Text style={s.label}>Email</Text>
             <TextInput
               style={s.input}
               placeholder="tu@email.com"
-              placeholderTextColor={C.muted}
+              placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -62,62 +52,77 @@ export default function ForgotPasswordScreen() {
             />
           </View>
 
-          <TouchableOpacity
-            style={[s.btn, !email.trim() && s.btnDisabled]}
-            onPress={handleSendCode}
-            activeOpacity={0.85}
-            disabled={!email.trim() || isLoading}
-          >
-            <Text style={s.btnText}>{isLoading ? 'Enviando...' : 'Enviar código'}</Text>
-          </TouchableOpacity>
+          <View style={s.btnWrapper}>
+            <ThemedButton
+              variant="primary-filled"
+              label={isLoading ? 'Enviando...' : 'Enviar código'}
+              onPress={handleSendCode}
+              disabled={!email.trim() || isLoading}
+              loading={isLoading}
+              fullWidth
+            />
+          </View>
 
           <TouchableOpacity
             style={s.linkBtn}
             onPress={() => router.back()}
+            onPressIn={hapticLight}
           >
             <Text style={s.linkText}>Volver al inicio de sesión</Text>
           </TouchableOpacity>
-        </View>
+        </ThemedCard>
       </KeyboardAvoidingView>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
-  logoSection: { alignItems: 'center', marginBottom: 32 },
-  logoIcon: { fontSize: 56, marginBottom: 12 },
-  logoTitle: { fontSize: 26, fontWeight: '700', color: C.text },
-  logoSubtitle: { fontSize: 14, color: C.muted, marginTop: 4, textAlign: 'center' },
-  card: {
-    backgroundColor: C.card,
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: C.border,
+  container: { flex: 1, backgroundColor: SBColors.NEUTRAL_WARM },
+  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: SBSpacing.outerGutter },
+  logoSection: { alignItems: 'center', marginBottom: SBSpacing.space6 },
+  logoIcon: { marginBottom: SBSpacing.space3 },
+  logoTitle: {
+    fontSize: 26,
+    fontFamily: SBFonts.bold,
+    color: SBColors.STARBUCKS_GREEN,
+    letterSpacing: SBType.letterSpacingNormal,
   },
-  field: { marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 6 },
+  logoSubtitle: {
+    fontSize: 14,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK_SOFT,
+    marginTop: 4,
+    textAlign: 'center',
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  field: { marginBottom: SBSpacing.space3 },
+  label: {
+    fontSize: 13,
+    fontFamily: SBFonts.semibold,
+    color: SBColors.TEXT_BLACK,
+    marginBottom: 6,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
   input: {
-    backgroundColor: C.inputBg,
+    backgroundColor: SBColors.NEUTRAL_WARM,
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: SBSpacing.space3,
     paddingVertical: 14,
     fontSize: 15,
-    color: C.text,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: SBColors.CERAMIC,
+    letterSpacing: SBType.letterSpacingNormal,
   },
-  btn: {
-    backgroundColor: C.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 8,
+  btnWrapper: {
+    marginTop: SBSpacing.space2,
   },
-  btnDisabled: { backgroundColor: C.secondary, opacity: 0.6 },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  linkBtn: { marginTop: 16, alignItems: 'center' },
-  linkText: { color: C.primary, fontSize: 14, fontWeight: '500' },
+  linkBtn: { marginTop: SBSpacing.space4, alignItems: 'center' },
+  linkText: {
+    color: SBColors.GREEN_ACCENT,
+    fontSize: 14,
+    fontFamily: SBFonts.medium,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
 });
