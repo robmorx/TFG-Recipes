@@ -131,6 +131,7 @@ export class UserRepository implements IUserRepository {
       name: u.name,
       email: u.email,
       password: u.password,
+      role: u.role ?? 'USER',
       isVerified: u.isVerified,
       verificationCode: u.verificationCode,
       verificationCodeExpires: u.verificationCodeExpires,

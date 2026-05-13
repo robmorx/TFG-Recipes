@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { CurrentUser } from '../../auth/current-user.decorator';
 import { RecipeUseCase } from '../../domain/recipe/usecases/recipe.usecases';
 import { RecipeAddRequestDTO } from '../../domain/recipe/dto/recipe.add.request.dto';
 import { RecipeDeleteRequestDTO } from '../../domain/recipe/dto/recipe.delete.request.dto';
@@ -7,6 +9,8 @@ import { RecipeResponseDTO } from '../../domain/recipe/dto/recipe.response.dto';
 
 @ApiTags('Recipes')
 @Controller('recipes')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class RecipeController {
   constructor(private readonly recipeUseCase: RecipeUseCase) {}
 
@@ -39,9 +43,14 @@ export class RecipeController {
     description: 'Bad request - invalid input or AI response',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Daily recipe limit reached' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 503, description: 'AI service unavailable' })
-  async add(@Body() dto: RecipeAddRequestDTO): Promise<RecipeResponseDTO> {
+  async add(
+    @Body() dto: RecipeAddRequestDTO,
+    @CurrentUser() user: { user_uuid: string; email: string; role: string },
+  ): Promise<RecipeResponseDTO> {
+    dto.user_uuid = user.user_uuid;
     return this.recipeUseCase.add(dto);
   }
 

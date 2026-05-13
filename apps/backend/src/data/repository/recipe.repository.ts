@@ -17,6 +17,15 @@ export class RecipeRepository implements IRecipeRepository {
     return this.mapToEntity(recipe);
   }
 
+  async countByUserSince(userId: string, since: Date): Promise<number> {
+    return this.prisma.recipe.count({
+      where: {
+        userId,
+        createdAt: { gte: since },
+      },
+    });
+  }
+
   async getByUserUUID(user_uuid: string): Promise<Recipe[]> {
     const recipes = await this.prisma.recipe.findMany({
       where: { userId: user_uuid },

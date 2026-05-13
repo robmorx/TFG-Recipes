@@ -21,4 +21,10 @@ export class RecipeResponseDTO {
 
   @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
   createdAt: Date;
+
+  @ApiProperty({ example: 2 })
+  dailyRecipeCount: number;
+
+  @ApiProperty({ example: 2 })
+  dailyRecipeLimit: number;
 }

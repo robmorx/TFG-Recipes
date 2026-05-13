@@ -4,6 +4,9 @@ export interface User {
   name: string;
   email: string;
   password?: string;
+  role?: string;
+  dailyRecipeCount?: number;
+  dailyRecipeLimit?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

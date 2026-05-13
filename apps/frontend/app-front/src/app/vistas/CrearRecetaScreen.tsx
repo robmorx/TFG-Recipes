@@ -183,13 +183,20 @@ export default function CrearRecetaScreen() {
     try {
       await addRecipe(request);
       router.back();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || 'Error al generar la receta';
+      Alert.alert('Límite alcanzado', message);
     } finally {
       setIsGenerating(false);
     }
   };
 
   const selectedCount = ingredients.filter(i => i.selected).length;
-  const canSave = selectedCount > 0;
+  const isSuperUser = user?.role === 'SUPERUSER';
+  const dailyCount = user?.dailyRecipeCount ?? 0;
+  const dailyLimit = user?.dailyRecipeLimit ?? 2;
+  const limitReached = !isSuperUser && dailyCount >= dailyLimit;
+  const canSave = selectedCount > 0 && !limitReached;
 
   return (
     <SafeAreaView style={s.safe}>
@@ -205,6 +212,21 @@ export default function CrearRecetaScreen() {
             <Text style={s.navTitle}>Nueva Receta</Text>
             <View style={{ width: 36 }} />
           </View>
+
+          {!isSuperUser && (
+            <View style={s.usageBanner}>
+              <MaterialCommunityIcons
+                name={limitReached ? 'close-circle' : 'check-circle'}
+                size={18}
+                color={limitReached ? SBColors.RED : SBColors.GREEN_ACCENT}
+              />
+              <Text style={[s.usageText, limitReached && s.usageTextLimit]}>
+                {limitReached
+                  ? `Límite diario alcanzado (${dailyCount}/${dailyLimit})`
+                  : `Recetas hoy: ${dailyCount}/${dailyLimit}`}
+              </Text>
+            </View>
+          )}
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
@@ -493,6 +515,24 @@ const s = StyleSheet.create({
     letterSpacing: SBType.letterSpacingNormal,
   },
   scroll: { paddingBottom: 40 },
+  usageBanner: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: SBColors.WHITE,
+    borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14,
+    marginBottom: SBSpacing.space4,
+    borderWidth: 1, borderColor: SBColors.CERAMIC,
+    gap: 8,
+  },
+  usageText: {
+    fontSize: 13,
+    fontFamily: SBFonts.medium,
+    color: SBColors.TEXT_BLACK_SOFT,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  usageTextLimit: {
+    color: SBColors.RED,
+    fontFamily: SBFonts.semibold,
+  },
   formCard: {
     marginBottom: SBSpacing.space4,
   },

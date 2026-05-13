@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { UserRepository } from '../../../data/repository/user.repository';
+import { RecipeRepository } from '../../../data/repository/recipe.repository';
 import { InventoryRepository } from '../../../data/repository/inventory.repository';
 import { MailService } from '../../../mail/mail.service';
 import { UserAddRequestDTO } from '../dto/user.add.request.dto';
@@ -10,15 +12,25 @@ import { User } from '../user';
 
 @Injectable()
 export class UserUseCase implements IUserUseCase {
+  private readonly dailyRecipeLimit: number;
+
   constructor(
     private userRepository: UserRepository,
+    private recipeRepository: RecipeRepository,
     private inventoryRepository: InventoryRepository,
     private mailService: MailService,
-  ) {}
+    configService: ConfigService,
+  ) {
+    this.dailyRecipeLimit = configService.get<number>('DAILY_RECIPE_LIMIT', 2);
+  }
 
   async getList(): Promise<UserResponseDTO[]> {
     const users = await this.userRepository.getList();
-    return users.map((u) => this.toResponseDTO(u));
+    const results: UserResponseDTO[] = [];
+    for (const u of users) {
+      results.push(await this.toResponseDTO(u));
+    }
+    return results;
   }
 
   async getByUUID(uuid: string): Promise<UserResponseDTO | null> {
@@ -75,11 +87,17 @@ export class UserUseCase implements IUserUseCase {
     return this.toResponseDTO(user!);
   }
 
-  private toResponseDTO(user: User): UserResponseDTO {
+  private async toResponseDTO(user: User): Promise<UserResponseDTO> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dailyRecipeCount = await this.recipeRepository.countByUserSince(user.user_uuid, today);
     return {
       user_uuid: user.user_uuid,
       name: user.name,
       email: user.email,
+      role: user.role,
+      dailyRecipeCount,
+      dailyRecipeLimit: this.dailyRecipeLimit,
       createdAt: user.createdAt,
     };
   }

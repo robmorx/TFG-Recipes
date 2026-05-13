@@ -20,8 +20,14 @@ enum RecipeType {
   DINNER
 }
 
+enum Role {
+  USER
+  SUPERUSER
+}
+
 model User {
   id                     String         @id @default(uuid())
+  role                   Role           @default(USER)
   name                   String
   email                  String         @unique
   password               String

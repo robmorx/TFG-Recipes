@@ -44,7 +44,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const accessToken = this.generateAccessToken(user.user_uuid, user.email);
+    const accessToken = this.generateAccessToken(user.user_uuid, user.email, user.role);
     const refreshToken = await this.generateAndStoreRefreshToken(user.user_uuid);
 
     return {
@@ -79,7 +79,7 @@ export class AuthService {
 
     await this.refreshTokenRepository.revoke(storedToken.id);
 
-    const newAccessToken = this.generateAccessToken(user.user_uuid, user.email);
+    const newAccessToken = this.generateAccessToken(user.user_uuid, user.email, user.role);
     const newRefreshToken = await this.generateAndStoreRefreshToken(user.user_uuid);
 
     return {
@@ -211,8 +211,8 @@ export class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  private generateAccessToken(userUuid: string, email: string): string {
-    const payload = { sub: userUuid, email };
+  private generateAccessToken(userUuid: string, email: string, role: string): string {
+    const payload = { sub: userUuid, email, role };
     return this.jwtService.sign(payload);
   }
 
