@@ -117,11 +117,16 @@ class ApiClient {
     let response = await makeRequest();
 
     if (response.status === 401) {
+      const token = await tokenStorageService.getAccessToken();
+      if (!token) {
+        const json = await response.json();
+        throw new Error(json.message || 'No autorizado');
+      }
       try {
         await this.handleTokenRefresh();
         response = await makeRequest();
       } catch (refreshError) {
-        throw new Error('Session expired. Please login again.');
+        throw new Error('Sesión expirada. Inicia sesión de nuevo.');
       }
     }
 

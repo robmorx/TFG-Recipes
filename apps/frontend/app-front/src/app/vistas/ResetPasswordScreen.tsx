@@ -1,11 +1,11 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, StatusBar, Alert,
+  KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight, useAlert, ConfirmModal } from '../../presentation/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -43,23 +43,22 @@ export default function ResetPasswordScreen() {
   const { resetPassword, isLoading } = useUserVM();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { alertProps, showAlert } = useAlert();
 
   const handleReset = async () => {
     if (!newPassword || newPassword.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      showAlert({ title: 'Error', message: 'La contraseña debe tener al menos 6 caracteres', singleButton: true });
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      showAlert({ title: 'Error', message: 'Las contraseñas no coinciden', singleButton: true });
       return;
     }
     try {
       await resetPassword(decodeURIComponent(email), code, newPassword);
-      Alert.alert('Contraseña actualizada', 'Tu contraseña ha sido restablecida exitosamente', [
-        { text: 'OK', onPress: () => router.replace('/vistas/LoginScreen') },
-      ]);
+      showAlert({ title: 'Contraseña actualizada', message: 'Tu contraseña ha sido restablecida exitosamente', singleButton: true, confirmLabel: 'OK', icon: 'check-circle', onConfirm: () => router.replace('/vistas/LoginScreen') });
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo restablecer la contraseña');
+      showAlert({ title: 'Error', message: error.message || 'No se pudo restablecer la contraseña', singleButton: true });
     }
   };
 
@@ -120,6 +119,7 @@ export default function ResetPasswordScreen() {
           </View>
         </ThemedCard>
       </KeyboardAvoidingView>
+      <ConfirmModal {...alertProps} />
     </View>
   );
 }

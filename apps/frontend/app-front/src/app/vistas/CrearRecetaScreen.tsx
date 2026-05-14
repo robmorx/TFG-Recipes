@@ -1,7 +1,7 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform,
-  Modal, Alert,
+  Modal,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
@@ -12,7 +12,7 @@ import { QuantityUnit } from '../../domain/entities/item';
 import { useInventoryVM } from '../../presentation/viewmodel/InventoryVM';
 import { useItemVM } from '../../presentation/viewmodel/ItemVM';
 import { useAuth } from '../../presentation/context/AuthContext';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight, useAlert, ConfirmModal } from '../../presentation/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -80,6 +80,7 @@ export default function CrearRecetaScreen() {
   const { inventory, loadInventory } = useInventoryVM();
   const { addItem } = useItemVM();
   const { user } = useAuth();
+  const { alertProps, showAlert } = useAlert();
   const [recipeType, setRecipeType] = useState<RecipeType>(RecipeType.DINNER);
   const [quantity, setQuantity] = useState('4');
   const [ingredients, setIngredients] = useState<IngredientOption[]>([]);
@@ -117,7 +118,7 @@ export default function CrearRecetaScreen() {
   const handleAddToInventory = async () => {
     const trimmedName = newItemName.trim();
     if (!trimmedName || !user?.user_uuid) {
-      Alert.alert('Error', 'Falta el nombre del alimento');
+      showAlert({ title: 'Error', message: 'Falta el nombre del alimento', singleButton: true });
       return;
     }
 
@@ -139,7 +140,7 @@ export default function CrearRecetaScreen() {
       console.log('[CrearRecetaScreen] Item added successfully, inventory reloaded');
     } catch (error: any) {
       console.error('[CrearRecetaScreen] Error adding item:', error);
-      Alert.alert('Error', error.message || 'No se pudo añadir el artículo');
+      showAlert({ title: 'Error', message: error.message || 'No se pudo añadir el artículo', singleButton: true });
     }
   };
 
@@ -185,7 +186,7 @@ export default function CrearRecetaScreen() {
       router.back();
     } catch (error: any) {
       const message = error?.response?.data?.message || error?.message || 'Error al generar la receta';
-      Alert.alert('Límite alcanzado', message);
+      showAlert({ title: 'Límite alcanzado', message, singleButton: true });
     } finally {
       setIsGenerating(false);
     }
@@ -419,10 +420,11 @@ export default function CrearRecetaScreen() {
              </View>
            </ThemedCard>
          </TouchableOpacity>
-       </Modal>
-     </SafeAreaView>
-   );
- }
+        </Modal>
+        <ConfirmModal {...alertProps} />
+      </SafeAreaView>
+    );
+  }
 
 function TypeButton({
   icon,

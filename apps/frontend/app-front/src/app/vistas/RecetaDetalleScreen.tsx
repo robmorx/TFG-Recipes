@@ -1,5 +1,5 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert,
+  View, Text, TouchableOpacity, StyleSheet, ScrollView,
   SafeAreaView, StatusBar, Modal, useWindowDimensions,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
@@ -10,7 +10,7 @@ import { Recipe, RecipeStep, RecipeType } from '../../domain/entities/recipe';
 import { container } from '../../core/container';
 import { IRecipeUseCase } from '../../domain/interfaces/IRecipeUseCase';
 import { TYPES } from '../../core/TYPES';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight, useAlert, ConfirmModal } from '../../presentation/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -101,6 +101,7 @@ export default function RecetaDetalleScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const { alertProps, showAlert } = useAlert();
 
   const [recipe, setRecipe] = useState<Recipe | undefined>(undefined);
   const [loading, setLoading] = useState(true);
@@ -136,11 +137,12 @@ export default function RecetaDetalleScreen() {
           clearInterval(timerIntervals.current[stepIndex]);
           delete timerIntervals.current[stepIndex];
 
-          Alert.alert(
-            '¡Timer terminado!',
-            `El paso ${stepIndex + 1} ha terminado.`,
-            [{ text: 'OK' }]
-          );
+          showAlert({
+            title: '¡Timer terminado!',
+            message: `El paso ${stepIndex + 1} ha terminado.`,
+            singleButton: true,
+            confirmLabel: 'OK',
+          });
 
           const newTimers = { ...prev };
           delete newTimers[stepIndex];
@@ -370,6 +372,7 @@ export default function RecetaDetalleScreen() {
           </ThemedCard>
         </TouchableOpacity>
       </Modal>
+      <ConfirmModal {...alertProps} />
     </SafeAreaView>
   );
 }

@@ -1,11 +1,11 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, StatusBar, Alert,
+  KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight, useAlert, ConfirmModal } from '../../presentation/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -42,6 +42,7 @@ export default function VerifyResetCodeScreen() {
   const { email } = useLocalSearchParams<{ email: string }>();
   const { verifyResetCode, isLoading } = useUserVM();
   const [code, setCode] = useState('');
+  const { alertProps, showAlert } = useAlert();
 
   const handleVerify = async () => {
     if (!code.trim() || code.length < 6) return;
@@ -51,7 +52,7 @@ export default function VerifyResetCodeScreen() {
         `/vistas/ResetPasswordScreen?email=${encodeURIComponent(decodeURIComponent(email))}&code=${code.trim()}` as any
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Código inválido');
+      showAlert({ title: 'Error', message: error.message || 'Código inválido', singleButton: true });
     }
   };
 
@@ -101,6 +102,7 @@ export default function VerifyResetCodeScreen() {
           </View>
         </ThemedCard>
       </KeyboardAvoidingView>
+      <ConfirmModal {...alertProps} />
     </View>
   );
 }

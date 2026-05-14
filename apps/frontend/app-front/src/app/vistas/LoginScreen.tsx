@@ -1,12 +1,12 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, StatusBar, Alert,
+  KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, useAlert, ConfirmModal } from '../../presentation/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const { alertProps, showAlert } = useAlert();
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) return;
@@ -21,7 +22,7 @@ export default function LoginScreen() {
       await login(email.trim(), password, rememberMe);
       router.replace('/vistas/HomeScreen');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Credenciales inválidas');
+      showAlert({ title: 'Error', message: error.message || 'Credenciales inválidas', singleButton: true });
     }
   };
 
@@ -107,6 +108,7 @@ export default function LoginScreen() {
           </Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
+      <ConfirmModal {...alertProps} />
     </View>
   );
 }

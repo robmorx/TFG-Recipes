@@ -10,5 +10,6 @@ import { AiModule } from '../../ai/ai.module';
   imports: [AiModule, AuthModule],
   controllers: [RecipeController],
   providers: [RecipeRepository, UserRepository, RecipeUseCase],
+  exports: [RecipeRepository],
 })
 export class RecipeModule {}

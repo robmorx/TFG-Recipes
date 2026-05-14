@@ -1,7 +1,7 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   FlatList, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform,
-  ScrollView, Alert, Modal,
+  ScrollView, Modal,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -9,7 +9,7 @@ import { useInventoryVM } from '../../presentation/viewmodel/InventoryVM';
 import { useItemVM } from '../../presentation/viewmodel/ItemVM';
 import { useAuth } from '../../presentation/context/AuthContext';
 import { Item, QuantityUnit } from '../../domain/entities/item';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBRadius, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBRadius, SBType, SBFonts, hapticLight, useAlert, ConfirmModal } from '../../presentation/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -129,6 +129,7 @@ export default function InventarioScreen() {
 
   const { inventory, loadInventory, isLoading } = useInventoryVM();
   const { addItem, removeItem, editItem } = useItemVM();
+  const { alertProps, showAlert } = useAlert();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [quantityUnit, setQuantityUnit] = useState<QuantityUnit>(QuantityUnit.UNITS);
@@ -142,7 +143,7 @@ export default function InventarioScreen() {
   const handleAddItem = async () => {
     const trimmed = name.trim();
     if (!trimmed || !user?.user_uuid) {
-      Alert.alert('Error', 'Falta el nombre o el usuario no existe');
+      showAlert({ title: 'Error', message: 'Falta el nombre o el usuario no existe', singleButton: true });
       return;
     }
     try {
@@ -157,7 +158,7 @@ export default function InventarioScreen() {
       setQuantityUnit(QuantityUnit.UNITS);
       await loadInventory();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo añadir el artículo');
+      showAlert({ title: 'Error', message: error.message || 'No se pudo añadir el artículo', singleButton: true });
     }
   };
 
@@ -171,7 +172,7 @@ export default function InventarioScreen() {
       await removeItem(id);
       await loadInventory();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo eliminar el artículo');
+      showAlert({ title: 'Error', message: error.message || 'No se pudo eliminar el artículo', singleButton: true });
     }
   };
 
@@ -194,7 +195,7 @@ export default function InventarioScreen() {
       setEditingItem(null);
       await loadInventory();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo actualizar el artículo');
+      showAlert({ title: 'Error', message: error.message || 'No se pudo actualizar el artículo', singleButton: true });
     }
   };
 
@@ -388,7 +389,7 @@ export default function InventarioScreen() {
           </ThemedCard>
         </View>
       </Modal>
-
+      <ConfirmModal {...alertProps} />
     </SafeAreaView>
   );
 }

@@ -1,17 +1,18 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, StatusBar, Alert,
+  KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight, useAlert, ConfirmModal } from '../../presentation/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const { forgotPassword, isLoading } = useUserVM();
   const [email, setEmail] = useState('');
+  const { alertProps, showAlert } = useAlert();
 
   const handleSendCode = async () => {
     if (!email.trim()) return;
@@ -19,7 +20,7 @@ export default function ForgotPasswordScreen() {
       await forgotPassword(email.trim());
       router.push(`/vistas/VerifyResetCodeScreen?email=${encodeURIComponent(email.trim())}` as any);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se encontró la cuenta');
+      showAlert({ title: 'Error', message: error.message || 'No se encontró la cuenta', singleButton: true });
     }
   };
 
@@ -72,6 +73,7 @@ export default function ForgotPasswordScreen() {
           </TouchableOpacity>
         </ThemedCard>
       </KeyboardAvoidingView>
+      <ConfirmModal {...alertProps} />
     </View>
   );
 }

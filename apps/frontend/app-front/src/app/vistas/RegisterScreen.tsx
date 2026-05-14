@@ -1,12 +1,12 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, StatusBar, Alert,
+  KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, useAlert, ConfirmModal } from '../../presentation/theme';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { alertProps, showAlert } = useAlert();
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) return;
@@ -21,7 +22,7 @@ export default function RegisterScreen() {
       await registerUser({ name: name.trim(), email: email.trim(), password });
       router.replace(`/vistas/VerifyAccountScreen?email=${encodeURIComponent(email.trim())}` as any);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo registrar');
+      showAlert({ title: 'Error', message: error.message || 'No se pudo registrar', singleButton: true });
     }
   };
 
@@ -97,6 +98,7 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </ThemedCard>
       </KeyboardAvoidingView>
+      <ConfirmModal {...alertProps} />
     </View>
   );
 }

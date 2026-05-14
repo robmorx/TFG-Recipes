@@ -32,7 +32,7 @@ export class AuthService {
     const user = await this.userRepository.getByEmail(dto.email);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('No se encontró ninguna cuenta con este correo');
     }
 
     const isPasswordValid = await this.userRepository.validatePassword(
@@ -41,7 +41,7 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Contraseña incorrecta');
     }
 
     const accessToken = this.generateAccessToken(user.user_uuid, user.email, user.role);

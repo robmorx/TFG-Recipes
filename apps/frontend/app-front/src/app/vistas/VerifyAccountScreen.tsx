@@ -1,11 +1,11 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, StatusBar, Alert,
+  KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
-import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { ThemedButton, ThemedCard, SBColors, SBSpacing, SBType, SBFonts, hapticLight, useAlert, ConfirmModal } from '../../presentation/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -42,16 +42,15 @@ export default function VerifyAccountScreen() {
   const { email } = useLocalSearchParams<{ email: string }>();
   const { verifyAccount, isLoading } = useUserVM();
   const [code, setCode] = useState('');
+  const { alertProps, showAlert } = useAlert();
 
   const handleVerify = async () => {
     if (!code.trim() || code.length < 6) return;
     try {
       await verifyAccount(decodeURIComponent(email), code.trim());
-      Alert.alert('Cuenta verificada', 'Tu cuenta ha sido verificada exitosamente', [
-        { text: 'OK', onPress: () => router.replace('/vistas/LoginScreen') },
-      ]);
+      showAlert({ title: 'Cuenta verificada', message: 'Tu cuenta ha sido verificada exitosamente', singleButton: true, confirmLabel: 'OK', icon: 'check-circle', onConfirm: () => router.replace('/vistas/LoginScreen') });
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Código inválido');
+      showAlert({ title: 'Error', message: error.message || 'Código inválido', singleButton: true });
     }
   };
 
@@ -105,6 +104,7 @@ export default function VerifyAccountScreen() {
           </View>
         </ThemedCard>
       </KeyboardAvoidingView>
+      <ConfirmModal {...alertProps} />
     </View>
   );
 }

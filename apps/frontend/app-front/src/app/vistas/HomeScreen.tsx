@@ -1,11 +1,11 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Alert,
+  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SBColors, SBSpacing, SBRadius, SBType, SBFonts, hapticLight } from '../../presentation/theme';
+import { SBColors, SBSpacing, SBRadius, SBType, SBFonts, hapticLight, useAlert, ConfirmModal } from '../../presentation/theme';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -64,49 +64,49 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user, logout } = useUserVM();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { alertProps, showAlert } = useAlert();
 
   const handleLogout = () => {
     console.log('[HomeScreen] handleLogout called');
     console.log('[HomeScreen] Current user:', user?.email || user?.name || 'No user');
 
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que quieres cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel', onPress: () => console.log('[HomeScreen] Logout cancelled') },
-        {
-          text: 'Salir',
-          style: 'destructive',
-          onPress: () => {
-            console.log('[HomeScreen] Logout confirmed');
-            
-            if (isLoggingOut) {
-              console.log('[HomeScreen] Already logging out, skipping');
-              return;
-            }
+    if (isLoggingOut) {
+      console.log('[HomeScreen] Already logging out, skipping');
+      return;
+    }
 
-            setIsLoggingOut(true);
-            console.log('[HomeScreen] Navigating to login screen first...');
-            
-            router.replace('/');
-            
-            console.log('[HomeScreen] Navigation triggered, calling logout in background...');
-            
-            (async () => {
-              try {
-                console.log('[HomeScreen] Calling logout() from UserVM...');
-                await logout();
-                console.log('[HomeScreen] logout() completed successfully');
-              } catch (error: any) {
-                console.error('[HomeScreen] Error during background logout:', error?.message || error);
-              } finally {
-                setIsLoggingOut(false);
-              }
-            })();
-          },
-        },
-      ]
-    );
+    showAlert({
+      title: 'Cerrar Sesión',
+      message: '¿Estás seguro de que quieres cerrar sesión?',
+      confirmLabel: 'Salir',
+      cancelLabel: 'Cancelar',
+      confirmDestructive: true,
+      icon: 'logout',
+      onConfirm: () => {
+        console.log('[HomeScreen] Logout confirmed');
+        setIsLoggingOut(true);
+        console.log('[HomeScreen] Navigating to login screen first...');
+
+        router.replace('/');
+
+        console.log('[HomeScreen] Navigation triggered, calling logout in background...');
+
+        (async () => {
+          try {
+            console.log('[HomeScreen] Calling logout() from UserVM...');
+            await logout();
+            console.log('[HomeScreen] logout() completed successfully');
+          } catch (error: any) {
+            console.error('[HomeScreen] Error during background logout:', error?.message || error);
+          } finally {
+            setIsLoggingOut(false);
+          }
+        })();
+      },
+      onCancel: () => {
+        console.log('[HomeScreen] Logout cancelled');
+      },
+    });
   };
 
   const fabScale = useSharedValue(1);
@@ -180,6 +180,7 @@ export default function HomeScreen() {
          </View>
 
       </View>
+      <ConfirmModal {...alertProps} />
     </SafeAreaView>
   );
 }

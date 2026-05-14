@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { UserRepository } from '../../../data/repository/user.repository';
 import { RecipeRepository } from '../../../data/repository/recipe.repository';
 import { InventoryRepository } from '../../../data/repository/inventory.repository';
@@ -40,30 +41,40 @@ export class UserUseCase implements IUserUseCase {
   }
 
   async add(entity: UserAddRequestDTO): Promise<UserResponseDTO> {
-    const userEntity = {
-      name: entity.name,
-      email: entity.email,
-      password: entity.password,
-      isVerified: false,
-      verificationCode: null as string | null,
-      verificationCodeExpires: null as Date | null,
-      resetPasswordCode: null as string | null,
-      resetPasswordCodeExpires: null as Date | null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const userUuid = await this.userRepository.add(userEntity as any);
-    await this.inventoryRepository.add({ user_uuid: userUuid });
+    try {
+      const userEntity = {
+        name: entity.name,
+        email: entity.email,
+        password: entity.password,
+        isVerified: false,
+        verificationCode: null as string | null,
+        verificationCodeExpires: null as Date | null,
+        resetPasswordCode: null as string | null,
+        resetPasswordCodeExpires: null as Date | null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const userUuid = await this.userRepository.add(userEntity as any);
+      await this.inventoryRepository.add({ user_uuid: userUuid });
 
-    const code = this.generateVerificationCode();
-    const expires = new Date();
-    expires.setHours(expires.getHours() + 24);
-    await this.userRepository.updateVerificationCode(userUuid, code, expires);
+      const code = this.generateVerificationCode();
+      const expires = new Date();
+      expires.setHours(expires.getHours() + 24);
+      await this.userRepository.updateVerificationCode(userUuid, code, expires);
 
-    await this.mailService.sendVerificationCode(entity.email, code);
+      await this.mailService.sendVerificationCode(entity.email, code);
 
-    const user = await this.userRepository.getByUUID(userUuid);
-    return this.toResponseDTO(user!);
+      const user = await this.userRepository.getByUUID(userUuid);
+      return this.toResponseDTO(user!);
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Ya existe una cuenta con este correo electrónico');
+      }
+      throw error;
+    }
   }
 
   async delete(uuid: string): Promise<boolean> {
