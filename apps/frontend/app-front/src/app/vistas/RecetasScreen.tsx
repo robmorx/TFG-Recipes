@@ -32,6 +32,14 @@ const RECIPE_ICONS: (keyof typeof MaterialCommunityIcons.glyphMap)[] = [
   'egg-fried', 'food-variant', 'noodle', 'pot-steam', 'soup', 'sandwich'
 ];
 
+const shadowFrap = {
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 0.14,
+  shadowRadius: 12,
+  elevation: 10,
+} as const;
+
 export default function RecetasScreen() {
   const router = useRouter();
   const { recipes, loadRecipes, deleteRecipe, isLoading } = useRecipeVM();
@@ -56,6 +64,11 @@ export default function RecetasScreen() {
   const backScale = useSharedValue(1);
   const backAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: backScale.value }],
+  }));
+
+  const fabScale = useSharedValue(1);
+  const fabAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: fabScale.value }],
   }));
 
   return (
@@ -136,6 +149,22 @@ export default function RecetasScreen() {
            </View>
          )}
 
+      </View>
+
+      <View style={s.fabWrapper}>
+        <AnimatedTouchable
+          style={[s.fab, fabAnimatedStyle, shadowFrap]}
+          onPress={() => router.push('/vistas/CrearRecetaScreen')}
+          activeOpacity={0.95}
+          onPressIn={() => {
+            fabScale.value = withTiming(0.95, { duration: 100 });
+            hapticLight();
+          }}
+          onPressOut={() => { fabScale.value = withTiming(1, { duration: 200 }); }}
+        >
+          <MaterialCommunityIcons name="plus" size={32} color={SBColors.WHITE} />
+        </AnimatedTouchable>
+        <Text style={s.fabLabel}>Nueva Receta</Text>
       </View>
     </SafeAreaView>
   );
@@ -334,6 +363,27 @@ const s = StyleSheet.create({
   emptySub: {
     fontSize: 13, color: SBColors.TEXT_BLACK_SOFT, textAlign: 'center',
     fontFamily: SBFonts.regular,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  fabWrapper: {
+    position: 'absolute',
+    bottom: SBSpacing.space7,
+    alignSelf: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: SBColors.GREEN_ACCENT,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fabLabel: {
+    fontSize: 12,
+    color: SBColors.TEXT_BLACK_SOFT,
+    fontFamily: SBFonts.medium,
     letterSpacing: SBType.letterSpacingNormal,
   },
 });

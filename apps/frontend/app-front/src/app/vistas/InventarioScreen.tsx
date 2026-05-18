@@ -99,7 +99,7 @@ function AnimatedItemRow({
       </View>
       <View style={s.itemInfo}>
         <Text style={s.itemName}>{item.name}</Text>
-        <Text style={s.itemQty}>{item.quantity} {getUnitLabel(item.quantityUnit as QuantityUnit)}</Text>
+        <Text style={s.itemQty}>{formatQuantity(item.quantity, item.quantityUnit as QuantityUnit)}</Text>
       </View>
       <TouchableOpacity
         style={s.editBtn}
@@ -134,7 +134,6 @@ export default function InventarioScreen() {
   const [quantity, setQuantity] = useState('');
   const [quantityUnit, setQuantityUnit] = useState<QuantityUnit>(QuantityUnit.UNITS);
   const [filterUnit, setFilterUnit] = useState<QuantityUnit | 'ALL'>('ALL');
-  const [showUnitPicker, setShowUnitPicker] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editQuantity, setEditQuantity] = useState('');
@@ -204,8 +203,6 @@ export default function InventarioScreen() {
     setEditingItem(null);
   };
 
-  const selectedUnitLabel = QUANTITY_UNIT_OPTIONS.find(u => u.value === quantityUnit)?.label || 'Und';
-
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={SBColors.NEUTRAL_WARM} />
@@ -247,35 +244,26 @@ export default function InventarioScreen() {
                   returnKeyType="done"
                 />
               </View>
-               <View style={[s.field, { flex: 1 }]}>
-                 <Text style={s.label}>Unidad</Text>
-                 <TouchableOpacity
-                   style={s.unitPicker}
-                   onPress={() => setShowUnitPicker(!showUnitPicker)}
-                   activeOpacity={0.7}
-                   onPressIn={hapticLight}
-                 >
-                   <Text style={s.unitPickerText}>{selectedUnitLabel}</Text>
-                   <MaterialCommunityIcons name="chevron-down" size={16} color={SBColors.TEXT_BLACK_SOFT} />
-                 </TouchableOpacity>
-                {showUnitPicker && (
-                  <View style={s.unitDropdown}>
-                    {QUANTITY_UNIT_OPTIONS.map(opt => (
-                      <TouchableOpacity
-                        key={opt.value}
-                        style={[s.unitOption, quantityUnit === opt.value && s.unitOptionActive]}
-                        onPress={() => {
-                          setQuantityUnit(opt.value);
-                          setShowUnitPicker(false);
-                        }}
-                      >
-                        <Text style={[s.unitOptionText, quantityUnit === opt.value && s.unitOptionTextActive]}>
-                          {opt.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+
+              <View style={[s.field, { flex: 1 }]}>
+                <Text style={s.label}>Unidad</Text>
+                <View style={s.unitChipRow}>
+                  {QUANTITY_UNIT_OPTIONS.map(opt => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[s.unitChip, quantityUnit === opt.value && s.unitChipActive]}
+                      onPress={() => {
+                        setQuantityUnit(opt.value);
+                        hapticLight();
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[s.unitChipText, quantityUnit === opt.value && s.unitChipTextActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             </View>
 
@@ -325,13 +313,13 @@ export default function InventarioScreen() {
                 />
               )}
             />
-           ) : (
-             <View style={s.empty}>
-               <MaterialCommunityIcons name="basket-outline" size={52} color={SBColors.GREEN_ACCENT} style={s.emptyIcon} />
-               <Text style={s.emptyText}>Inventario vacío</Text>
-               <Text style={s.emptySub}>Añade los alimentos que tienes</Text>
-             </View>
-           )}
+          ) : (
+            <View style={s.empty}>
+              <MaterialCommunityIcons name="basket-outline" size={52} color={SBColors.GREEN_ACCENT} style={s.emptyIcon} />
+              <Text style={s.emptyText}>Inventario vacío</Text>
+              <Text style={s.emptySub}>Añade los alimentos que tienes</Text>
+            </View>
+          )}
 
         </View>
       </KeyboardAvoidingView>
@@ -359,12 +347,16 @@ export default function InventarioScreen() {
 
             <View style={s.modalField}>
               <Text style={s.label}>Unidad</Text>
-              <View style={s.unitRow}>
+              <View style={s.unitChipRow}>
                 {QUANTITY_UNIT_OPTIONS.map(opt => (
                   <TouchableOpacity
                     key={opt.value}
                     style={[s.unitChip, editQuantityUnit === opt.value && s.unitChipActive]}
-                    onPress={() => setEditQuantityUnit(opt.value)}
+                    onPress={() => {
+                      setEditQuantityUnit(opt.value);
+                      hapticLight();
+                    }}
+                    activeOpacity={0.8}
                   >
                     <Text style={[s.unitChipText, editQuantityUnit === opt.value && s.unitChipTextActive]}>
                       {opt.label}
@@ -389,15 +381,21 @@ export default function InventarioScreen() {
           </ThemedCard>
         </View>
       </Modal>
+
       <ConfirmModal {...alertProps} />
     </SafeAreaView>
   );
 }
 
-function getUnitLabel(unit?: QuantityUnit): string {
-  if (!unit) return 'und';
-  const opt = QUANTITY_UNIT_OPTIONS.find(o => o.value === unit);
-  return opt ? opt.label : 'und';
+function formatQuantity(quantity: number, unit?: QuantityUnit): string {
+  if (!unit) return `${quantity} ud`;
+  switch (unit) {
+    case QuantityUnit.UNITS: return `${quantity} ud`;
+    case QuantityUnit.LITRES: return `${quantity} L`;
+    case QuantityUnit.KILOGRAMS: return `${quantity} kg`;
+    case QuantityUnit.GRAMS: return `${quantity} g`;
+    default: return `${quantity} ud`;
+  }
 }
 
 const s = StyleSheet.create({
@@ -447,48 +445,35 @@ const s = StyleSheet.create({
     letterSpacing: SBType.letterSpacingNormal,
   },
   rowFields: { flexDirection: 'row' },
-  unitPicker: {
+  unitChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  unitChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 50,
     backgroundColor: SBColors.NEUTRAL_WARM,
-    borderRadius: 12,
-    paddingHorizontal: SBSpacing.space3,
-    paddingVertical: 12,
     borderWidth: 1,
     borderColor: SBColors.CERAMIC,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  unitPickerText: {
-    fontSize: 14,
+  unitChipActive: {
+    backgroundColor: SBColors.GREEN_ACCENT,
+    borderColor: SBColors.GREEN_ACCENT,
+  },
+  unitChipText: {
+    fontSize: 13,
     fontFamily: SBFonts.regular,
     color: SBColors.TEXT_BLACK,
     letterSpacing: SBType.letterSpacingNormal,
   },
-  unitPickerArrow: { fontSize: 10, color: SBColors.TEXT_BLACK_SOFT },
-  unitDropdown: {
-    position: 'absolute', top: 66, left: 0, right: 0,
-    backgroundColor: SBColors.WHITE,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: SBColors.CERAMIC,
-    zIndex: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.24,
-    shadowRadius: 1,
-    elevation: 2,
+  unitChipTextActive: {
+    color: SBColors.WHITE,
+    fontFamily: SBFonts.medium,
   },
-  unitOption: {
-    paddingVertical: 10,
-    paddingHorizontal: SBSpacing.space3,
-    borderBottomWidth: 1,
-    borderBottomColor: SBColors.CERAMIC,
-  },
-  unitOptionActive: { backgroundColor: SBColors.GREEN_LIGHT },
-  unitOptionText: {
-    fontSize: 14,
-    color: SBColors.TEXT_BLACK,
-    letterSpacing: SBType.letterSpacingNormal,
-  },
-  unitOptionTextActive: { color: SBColors.GREEN_ACCENT, fontWeight: '600' },
   addBtn: {
     marginTop: 4,
   },
@@ -551,6 +536,7 @@ const s = StyleSheet.create({
   editBtn: {
     width: 28, height: 28, borderRadius: 14,
     backgroundColor: SBColors.NEUTRAL_WARM, alignItems: 'center', justifyContent: 'center',
+    marginRight: 6,
   },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 60 },
   emptyIcon: { marginBottom: 14 },
@@ -581,19 +567,6 @@ const s = StyleSheet.create({
     letterSpacing: SBType.letterSpacingNormal,
   },
   modalField: { marginBottom: SBSpacing.space4 },
-  unitRow: { flexDirection: 'row', gap: 8 },
-  unitChip: {
-    paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: 50, backgroundColor: SBColors.NEUTRAL_WARM,
-    borderWidth: 1, borderColor: SBColors.CERAMIC,
-  },
-  unitChipActive: { backgroundColor: SBColors.GREEN_ACCENT, borderColor: SBColors.GREEN_ACCENT },
-  unitChipText: {
-    fontSize: 14, color: SBColors.TEXT_BLACK,
-    fontFamily: SBFonts.regular,
-    letterSpacing: SBType.letterSpacingNormal,
-  },
-  unitChipTextActive: { color: SBColors.WHITE, fontFamily: SBFonts.medium },
   modalActions: { flexDirection: 'row', gap: 12, marginTop: 8 },
   modalCancelBtn: {
     flex: 1, paddingVertical: 14, borderRadius: 50,

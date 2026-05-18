@@ -25,9 +25,10 @@ export const useRecipeVM = () => {
     loadRecipes();
   }, [user?.user_uuid]);
 
-  const addRecipe = async (request: RecipeCreateRequestDTO) => {
-    await recipeUseCase.post(request);
+  const addRecipe = async (request: RecipeCreateRequestDTO): Promise<Recipe> => {
+    const result = await recipeUseCase.post(request);
     await loadRecipes();
+    return result;
   };
 
   const deleteRecipe = async (id: string) => {

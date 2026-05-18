@@ -182,8 +182,8 @@ export default function CrearRecetaScreen() {
     };
 
     try {
-      await addRecipe(request);
-      router.back();
+      const newRecipe = await addRecipe(request);
+      router.replace(`/vistas/RecetaDetalleScreen?id=${newRecipe.recipe_uuid}`);
     } catch (error: any) {
       const message = error?.response?.data?.message || error?.message || 'Error al generar la receta';
       showAlert({ title: 'Límite alcanzado', message, singleButton: true });
@@ -277,37 +277,37 @@ export default function CrearRecetaScreen() {
               </View>
             </ThemedCard>
 
-             <ThemedCard padding="md" style={s.sectionCard}>
-               <View style={s.sectionHeader}>
-                 <View style={s.sectionHeaderLeft}>
-                   <Text style={s.sectionTitle}>Ingredientes</Text>
-                   <Text style={s.sectionCount}>{selectedCount} seleccionados</Text>
-                 </View>
-                 <TouchableOpacity
-                   style={s.addItemBtn}
-                   onPress={() => setShowAddItemModal(true)}
-                   onPressIn={hapticLight}
-                   activeOpacity={0.7}
-                 >
-                   <MaterialCommunityIcons name="plus-circle-outline" size={24} color={SBColors.GREEN_ACCENT} />
-                 </TouchableOpacity>
-               </View>
+            <ThemedCard padding="md" style={s.sectionCard}>
+              <View style={s.sectionHeader}>
+                <View style={s.sectionHeaderLeft}>
+                  <Text style={s.sectionTitle}>Ingredientes</Text>
+                  <Text style={s.sectionCount}>{selectedCount} seleccionados</Text>
+                </View>
+                <TouchableOpacity
+                  style={s.addItemBtn}
+                  onPress={() => setShowAddItemModal(true)}
+                  onPressIn={hapticLight}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="plus-circle-outline" size={24} color={SBColors.GREEN_ACCENT} />
+                </TouchableOpacity>
+              </View>
 
-               <View style={s.ingredientsGrid}>
-                 {ingredients.map(item => (
-                   <ChipButton
-                     key={item.id}
-                     label={
-                       item.quantity && item.quantityUnit
-                         ? `${item.quantity} ${item.quantityUnit} ${item.name}`
-                         : item.name
-                     }
-                     active={item.selected}
-                     onPress={() => toggle(item.id)}
-                   />
-                 ))}
-               </View>
-             </ThemedCard>
+              <View style={s.ingredientsGrid}>
+                {ingredients.map(item => (
+                  <ChipButton
+                    key={item.id}
+                    label={
+                      item.quantity && item.quantityUnit
+                        ? `${item.quantity} ${item.quantityUnit} ${item.name}`
+                        : item.name
+                    }
+                    active={item.selected}
+                    onPress={() => toggle(item.id)}
+                  />
+                ))}
+              </View>
+            </ThemedCard>
 
             <ThemedButton
               variant="primary-filled"
@@ -318,113 +318,111 @@ export default function CrearRecetaScreen() {
               fullWidth
             />
 
-           </ScrollView>
-         </View>
-       </KeyboardAvoidingView>
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
 
-       <Modal
-         visible={showAddItemModal}
-         transparent
-         animationType="fade"
-         onRequestClose={() => setShowAddItemModal(false)}
-       >
-         <TouchableOpacity
-           style={s.modalOverlay}
-           activeOpacity={1}
-           onPress={() => setShowAddItemModal(false)}
-         >
-           <ThemedCard padding="lg" style={s.modalCard}>
-             <View style={s.modalHeader}>
-               <Text style={s.modalTitle}>Añadir a Inventario</Text>
-               <TouchableOpacity
-                 onPress={() => setShowAddItemModal(false)}
-                 onPressIn={hapticLight}
-                 activeOpacity={0.7}
-               >
-                 <MaterialCommunityIcons name="close" size={24} color={SBColors.TEXT_BLACK_SOFT} />
-               </TouchableOpacity>
-             </View>
+      <Modal
+        visible={showAddItemModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAddItemModal(false)}
+      >
+        <View style={s.modalOverlay}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setShowAddItemModal(false)}
+          />
+          <View
+            style={s.modalContentContainer}
+            onStartShouldSetResponder={() => true}
+          >
+            <ThemedCard padding="lg" style={s.modalCard}>
+              <View style={s.modalHeader}>
+                <Text style={s.modalTitle}>Añadir a Inventario</Text>
+                <TouchableOpacity
+                  onPress={() => setShowAddItemModal(false)}
+                  onPressIn={hapticLight}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="close" size={24} color={SBColors.TEXT_BLACK_SOFT} />
+                </TouchableOpacity>
+              </View>
 
-             <View style={s.modalField}>
-               <Text style={s.modalLabel}>Nombre del alimento</Text>
-               <TextInput
-                 style={s.modalInput}
-                 placeholder="Ej: Pollo, Leche, Huevos..."
-                 placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
-                 value={newItemName}
-                 onChangeText={setNewItemName}
-                 autoCapitalize="words"
-               />
-             </View>
+              <View style={s.modalField}>
+                <Text style={s.modalLabel}>Nombre del alimento</Text>
+                <TextInput
+                  style={s.modalInput}
+                  placeholder="Ej: Pollo, Leche, Huevos..."
+                  placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
+                  value={newItemName}
+                  onChangeText={setNewItemName}
+                  autoCapitalize="words"
+                />
+              </View>
 
-             <View style={s.modalRowFields}>
-               <View style={[s.modalField, { flex: 1, marginRight: 10 }]}>
-                 <Text style={s.modalLabel}>Cantidad</Text>
-                 <TextInput
-                   style={s.modalInput}
-                   placeholder="1"
-                   placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
-                   value={newItemQty}
-                   onChangeText={setNewItemQty}
-                   keyboardType="numeric"
-                 />
-               </View>
+              <View style={s.modalRowFields}>
+                <View style={[s.modalField, { flex: 1, marginRight: 10 }]}>
+                  <Text style={s.modalLabel}>Cantidad</Text>
+                  <TextInput
+                    style={s.modalInput}
+                    placeholder="1"
+                    placeholderTextColor={SBColors.TEXT_BLACK_SOFT}
+                    value={newItemQty}
+                    onChangeText={setNewItemQty}
+                    keyboardType="numeric"
+                  />
+                </View>
 
-               <View style={[s.modalField, { flex: 1 }]}>
-                 <Text style={s.modalLabel}>Unidad</Text>
-                 <View style={s.unitRow}>
-                   {QUANTITY_UNIT_OPTIONS.map(opt => (
-                     <TouchableOpacity
-                       key={opt.value}
-                       style={[
-                         s.unitChip,
-                         newItemUnit === opt.value && s.unitChipActive,
-                       ]}
-                       onPress={() => {
-                         setNewItemUnit(opt.value);
-                         hapticLight();
-                       }}
-                       activeOpacity={0.7}
-                     >
-                       <Text
-                         style={[
-                           s.unitChipText,
-                           newItemUnit === opt.value && s.unitChipTextActive,
-                         ]}
-                       >
-                         {opt.label}
-                       </Text>
-                     </TouchableOpacity>
-                   ))}
-                 </View>
-               </View>
-             </View>
+                <View style={[s.modalField, { flex: 1 }]}>
+                  <Text style={s.modalLabel}>Unidad</Text>
+                  <View style={s.unitChipRow}>
+                    {QUANTITY_UNIT_OPTIONS.map(opt => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        style={[s.unitChip, newItemUnit === opt.value && s.unitChipActive]}
+                        onPress={() => {
+                          setNewItemUnit(opt.value);
+                          hapticLight();
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[s.unitChipText, newItemUnit === opt.value && s.unitChipTextActive]}>
+                          {opt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </View>
 
-             <View style={s.modalActions}>
-               <TouchableOpacity
-                 style={s.modalCancelBtn}
-                 onPress={() => setShowAddItemModal(false)}
-                 onPressIn={hapticLight}
-                 activeOpacity={0.7}
-               >
-                 <Text style={s.modalCancelText}>Cancelar</Text>
-               </TouchableOpacity>
-               <ThemedButton
-                 variant="primary-filled"
-                 label="Añadir"
-                 onPress={handleAddToInventory}
-                 disabled={!newItemName.trim()}
-                 fullWidth={false}
-                 style={s.modalAddBtn}
-               />
-             </View>
-           </ThemedCard>
-         </TouchableOpacity>
-        </Modal>
-        <ConfirmModal {...alertProps} />
-      </SafeAreaView>
-    );
-  }
+              <View style={s.modalActions}>
+                <TouchableOpacity
+                  style={s.modalCancelBtn}
+                  onPress={() => setShowAddItemModal(false)}
+                  onPressIn={hapticLight}
+                  activeOpacity={0.7}
+                >
+                  <Text style={s.modalCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <ThemedButton
+                  variant="primary-filled"
+                  label="Añadir"
+                  onPress={handleAddToInventory}
+                  disabled={!newItemName.trim()}
+                  fullWidth={false}
+                  style={s.modalAddBtn}
+                />
+              </View>
+            </ThemedCard>
+          </View>
+        </View>
+      </Modal>
+      <ConfirmModal {...alertProps} />
+    </SafeAreaView>
+  );
+}
 
 function TypeButton({
   icon,
@@ -604,112 +602,120 @@ const s = StyleSheet.create({
     letterSpacing: SBType.letterSpacingNormal,
   },
   prefChipTextSelected: { color: SBColors.GREEN_ACCENT, fontFamily: SBFonts.medium },
-   sectionHeaderLeft: {
-     flexDirection: 'column',
-   },
-   addItemBtn: {
-     padding: 4,
-     minWidth: 40,
-     minHeight: 40,
-     justifyContent: 'center',
-     alignItems: 'center',
-   },
-   ingredientsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-   modalOverlay: {
-     flex: 1,
-     backgroundColor: 'rgba(0,0,0,0.5)',
-     alignItems: 'center',
-     justifyContent: 'center',
-     paddingHorizontal: 20,
-   },
-   modalCard: {
-     width: '100%',
-     maxWidth: 400,
-   },
-   modalHeader: {
-     flexDirection: 'row',
-     justifyContent: 'space-between',
-     alignItems: 'center',
-     marginBottom: SBSpacing.space5,
-   },
-   modalTitle: {
-     fontSize: 18,
-     fontFamily: SBFonts.semibold,
-     color: SBColors.STARBUCKS_GREEN,
-     letterSpacing: SBType.letterSpacingNormal,
-   },
-   modalField: {
-     marginBottom: SBSpacing.space4,
-   },
-   modalLabel: {
-     fontSize: 13,
-     fontFamily: SBFonts.semibold,
-     color: SBColors.TEXT_BLACK,
-     marginBottom: 6,
-     letterSpacing: SBType.letterSpacingNormal,
-   },
-   modalInput: {
-     backgroundColor: SBColors.NEUTRAL_WARM,
-     borderRadius: 12,
-     paddingHorizontal: SBSpacing.space3,
-     paddingVertical: 12,
-     fontSize: 15,
-     fontFamily: SBFonts.regular,
-     color: SBColors.TEXT_BLACK,
-     borderWidth: 1,
-     borderColor: SBColors.CERAMIC,
-     letterSpacing: SBType.letterSpacingNormal,
-   },
-   modalRowFields: {
-     flexDirection: 'row',
-   },
-   unitRow: {
-     flexDirection: 'row',
-     gap: 8,
-   },
-   unitChip: {
-     paddingHorizontal: 16,
-     paddingVertical: 10,
-     borderRadius: 50,
-     backgroundColor: SBColors.NEUTRAL_WARM,
-     borderWidth: 1,
-     borderColor: SBColors.CERAMIC,
-   },
-   unitChipActive: {
-     backgroundColor: SBColors.GREEN_ACCENT,
-     borderColor: SBColors.GREEN_ACCENT,
-   },
-   unitChipText: {
-     fontSize: 14,
-     color: SBColors.TEXT_BLACK,
-     fontFamily: SBFonts.regular,
-     letterSpacing: SBType.letterSpacingNormal,
-   },
-   unitChipTextActive: {
-     color: SBColors.WHITE,
-     fontFamily: SBFonts.medium,
-   },
-   modalActions: {
-     flexDirection: 'row',
-     gap: 12,
-     marginTop: 8,
-   },
-   modalCancelBtn: {
-     flex: 1,
-     paddingVertical: 14,
-     borderRadius: 50,
-     backgroundColor: SBColors.NEUTRAL_WARM,
-     alignItems: 'center',
-     borderWidth: 1,
-     borderColor: SBColors.CERAMIC,
-   },
-   modalCancelText: {
-     fontSize: 15,
-     color: SBColors.TEXT_BLACK,
-     fontFamily: SBFonts.medium,
-     letterSpacing: SBType.letterSpacingNormal,
-   },
-   modalAddBtn: {
-     flex: 1,
-   },
- });
+  sectionHeaderLeft: {
+    flexDirection: 'column',
+  },
+  addItemBtn: {
+    padding: 4,
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ingredientsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContentContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SBSpacing.space5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: SBFonts.semibold,
+    color: SBColors.STARBUCKS_GREEN,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  modalField: {
+    marginBottom: SBSpacing.space4,
+  },
+  modalLabel: {
+    fontSize: 13,
+    fontFamily: SBFonts.semibold,
+    color: SBColors.TEXT_BLACK,
+    marginBottom: 6,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  modalInput: {
+    backgroundColor: SBColors.NEUTRAL_WARM,
+    borderRadius: 12,
+    paddingHorizontal: SBSpacing.space3,
+    paddingVertical: 12,
+    fontSize: 15,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK,
+    borderWidth: 1,
+    borderColor: SBColors.CERAMIC,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  modalRowFields: {
+    flexDirection: 'row',
+  },
+  unitChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  unitChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 50,
+    backgroundColor: SBColors.NEUTRAL_WARM,
+    borderWidth: 1,
+    borderColor: SBColors.CERAMIC,
+  },
+  unitChipActive: {
+    backgroundColor: SBColors.GREEN_ACCENT,
+    borderColor: SBColors.GREEN_ACCENT,
+  },
+  unitChipText: {
+    fontSize: 13,
+    fontFamily: SBFonts.regular,
+    color: SBColors.TEXT_BLACK,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  unitChipTextActive: {
+    color: SBColors.WHITE,
+    fontFamily: SBFonts.medium,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 50,
+    backgroundColor: SBColors.NEUTRAL_WARM,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: SBColors.CERAMIC,
+  },
+  modalCancelText: {
+    fontSize: 15,
+    color: SBColors.TEXT_BLACK,
+    fontFamily: SBFonts.medium,
+    letterSpacing: SBType.letterSpacingNormal,
+  },
+  modalAddBtn: {
+    flex: 1,
+  },
+});
