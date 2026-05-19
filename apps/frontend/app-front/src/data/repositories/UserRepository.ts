@@ -7,7 +7,7 @@ import { tokenStorageService } from '../../core/token-storage.service';
 @injectable()
 export class UserRepository implements IUserRepository {
   async get(): Promise<User | null> {
-    return apiClient.get<User>('/users');
+    return apiClient.get<User>('/users/profile');
   }
 
   async post(user: { name: string; email: string; password: string }): Promise<User> {
@@ -20,8 +20,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async login(
-    credentials: { email: string; password: string },
-    rememberMe: boolean,
+    credentials: { email: string; password: string }
   ): Promise<{ token: string; refreshToken: string; user: User }> {
     const response = await apiClient.post<{
       access_token: string;
@@ -30,8 +29,6 @@ export class UserRepository implements IUserRepository {
       name: string;
       email: string;
     }>('/auth/login', credentials);
-
-    tokenStorageService.setPersistToStorage(rememberMe);
     await tokenStorageService.setTokens(response.access_token, response.refresh_token);
 
     return {

@@ -3,7 +3,7 @@ import { User } from '../entities/user';
 export interface IUserUseCase {
   get(): Promise<User | null>;
   post(user: { name: string; email: string; password: string }): Promise<User>;
-  login(credentials: { email: string; password: string }, rememberMe: boolean): Promise<{ token: string; refreshToken: string; user: User }>;
+  login(credentials: { email: string; password: string }): Promise<{ token: string; refreshToken: string; user: User }>;
   verifyAccount(email: string, code: string): Promise<{ message: string }>;
   forgotPassword(email: string): Promise<{ message: string }>;
   verifyResetCode(email: string, code: string): Promise<{ message: string }>;

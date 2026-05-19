@@ -13,13 +13,12 @@ export default function LoginScreen() {
   const { login, isLoading } = useUserVM();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const { alertProps, showAlert } = useAlert();
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) return;
     try {
-      await login(email.trim(), password, rememberMe);
+      await login(email.trim(), password);
       router.replace('/vistas/HomeScreen');
     } catch (error: any) {
       showAlert({ title: 'Error', message: error.message || 'Credenciales inválidas', singleButton: true });
@@ -27,10 +26,6 @@ export default function LoginScreen() {
   };
 
   const canLogin = email.trim().length > 0 && password.trim().length > 0;
-
-  const toggleRememberMe = () => {
-    setRememberMe(!rememberMe);
-  };
 
   return (
     <View style={s.container}>
@@ -71,15 +66,6 @@ export default function LoginScreen() {
               secureTextEntry
             />
           </View>
-
-          <TouchableOpacity style={s.rememberMeRow} onPress={toggleRememberMe}>
-            <View style={[s.checkbox, rememberMe && s.checkboxChecked]}>
-              {rememberMe && (
-                <MaterialCommunityIcons name="check" size={14} color={SBColors.WHITE} />
-              )}
-            </View>
-            <Text style={s.rememberMeText}>Recordarme</Text>
-          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => router.push('/vistas/ForgotPasswordScreen' as any)}
@@ -165,31 +151,6 @@ const s = StyleSheet.create({
     color: SBColors.TEXT_BLACK,
     borderWidth: 1,
     borderColor: SBColors.CERAMIC,
-    letterSpacing: SBType.letterSpacingNormal,
-  },
-  rememberMeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SBSpacing.space2,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: SBColors.CERAMIC,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  checkboxChecked: {
-    backgroundColor: SBColors.GREEN_ACCENT,
-    borderColor: SBColors.GREEN_ACCENT,
-  },
-  rememberMeText: {
-    fontSize: 14,
-    color: SBColors.TEXT_BLACK,
-    fontFamily: SBFonts.medium,
     letterSpacing: SBType.letterSpacingNormal,
   },
   forgotText: {

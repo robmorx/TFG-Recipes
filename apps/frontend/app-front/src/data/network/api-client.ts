@@ -10,9 +10,13 @@ class ApiClient {
   private async fetchWithTimeout(
     url: string,
     options: RequestInit,
+    timeoutMs: number = FETCH_TIMEOUT_MS,
   ): Promise<Response> {
+    if (timeoutMs <= 0) {
+      return fetch(url, options);
+    }
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(url, {
@@ -22,7 +26,7 @@ class ApiClient {
       return response;
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        throw new Error(`Request timed out after ${FETCH_TIMEOUT_MS / 1000} seconds`);
+        throw new Error(`Request timed out after ${timeoutMs / 1000} seconds`);
       }
       throw error;
     } finally {
@@ -104,6 +108,7 @@ class ApiClient {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     endpoint: string,
     body?: unknown,
+    timeoutMs?: number,
   ): Promise<T> {
     const makeRequest = async (): Promise<Response> => {
       const headers = await this.getHeaders();
@@ -111,7 +116,7 @@ class ApiClient {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
-      });
+      }, timeoutMs);
     };
 
     let response = await makeRequest();
@@ -140,20 +145,20 @@ class ApiClient {
   setToken(token: string | null) {
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>('GET', endpoint);
+  async get<T>(endpoint: string, timeoutMs?: number): Promise<T> {
+    return this.request<T>('GET', endpoint, undefined, timeoutMs);
   }
 
-  async post<T>(endpoint: string, body?: unknown): Promise<T> {
-    return this.request<T>('POST', endpoint, body);
+  async post<T>(endpoint: string, body?: unknown, timeoutMs?: number): Promise<T> {
+    return this.request<T>('POST', endpoint, body, timeoutMs);
   }
 
-  async put<T>(endpoint: string, body?: unknown): Promise<T> {
-    return this.request<T>('PUT', endpoint, body);
+  async put<T>(endpoint: string, body?: unknown, timeoutMs?: number): Promise<T> {
+    return this.request<T>('PUT', endpoint, body, timeoutMs);
   }
 
-  async delete<T>(endpoint: string, body?: unknown): Promise<T> {
-    return this.request<T>('DELETE', endpoint, body);
+  async delete<T>(endpoint: string, body?: unknown, timeoutMs?: number): Promise<T> {
+    return this.request<T>('DELETE', endpoint, body, timeoutMs);
   }
 }
 

@@ -23,10 +23,9 @@ export class UserUseCase implements IUserUseCase {
   }
 
   async login(
-    credentials: { email: string; password: string },
-    rememberMe: boolean,
+    credentials: { email: string; password: string }
   ): Promise<{ token: string; refreshToken: string; user: User }> {
-    return this.userRepository.login(credentials, rememberMe);
+    return this.userRepository.login(credentials);
   }
 
   async verifyAccount(email: string, code: string): Promise<{ message: string }> {

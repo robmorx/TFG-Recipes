@@ -22,7 +22,7 @@ export class UserUseCase implements IUserUseCase {
     private mailService: MailService,
     configService: ConfigService,
   ) {
-    this.dailyRecipeLimit = configService.get<number>('DAILY_RECIPE_LIMIT', 2);
+    this.dailyRecipeLimit = parseInt(configService.get('DAILY_RECIPE_LIMIT', '2')?.toString() || '2', 10);
   }
 
   async getList(): Promise<UserResponseDTO[]> {

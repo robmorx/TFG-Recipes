@@ -21,10 +21,12 @@ import { UserDeleteRequestDTO } from '../../domain/user/dto/user.delete.request.
 import { UserUpdateRequestDTO } from '../../domain/user/dto/user.update.request.dto';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Public } from '../../auth/public.decorator';
+import { CurrentUser } from '../../auth/current-user.decorator';
 
 @ApiTags('Users')
 @Controller('users')
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class UsersController {
   constructor(private readonly userUseCase: UserUseCase) {}
 
@@ -33,6 +35,13 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'List of users' })
   async getList() {
     return this.userUseCase.getList();
+  }
+
+  @Get('profile')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, description: 'User profile' })
+  async getProfile(@CurrentUser() user: { user_uuid: string }) {
+    return this.userUseCase.getByUUID(user.user_uuid);
   }
 
   @Get(':user_uuid')

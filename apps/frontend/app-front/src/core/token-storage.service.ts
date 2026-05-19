@@ -10,8 +10,6 @@ class TokenStorageService {
     refreshToken: null,
   };
   private useSecureStorage: boolean = Platform.OS !== 'web';
-  private persistToStorage: boolean = true;
-
   private getWebStorage(): Storage | null {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       return window.localStorage;
@@ -23,34 +21,24 @@ class TokenStorageService {
     this.useSecureStorage = use;
   }
 
-  setPersistToStorage(persist: boolean): void {
-    this.persistToStorage = persist;
-  }
-
   isUsingSecureStorage(): boolean {
     return this.useSecureStorage;
   }
 
-  isPersistingToStorage(): boolean {
-    return this.persistToStorage;
-  }
-
   async setTokens(accessToken: string, refreshToken: string): Promise<void> {
-    if (this.persistToStorage) {
-      try {
-        if (Platform.OS === 'web') {
-          const storage = this.getWebStorage();
-          if (storage) {
-            storage.setItem(ACCESS_TOKEN_KEY, accessToken);
-            storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-          }
-        } else {
-          await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-          await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    try {
+      if (Platform.OS === 'web') {
+        const storage = this.getWebStorage();
+        if (storage) {
+          storage.setItem(ACCESS_TOKEN_KEY, accessToken);
+          storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
         }
-      } catch (error) {
-        console.warn('Failed to persist tokens:', error);
+      } else {
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
       }
+    } catch (error) {
+      console.warn('Failed to persist tokens:', error);
     }
     this.inMemoryTokens = { accessToken, refreshToken };
   }
@@ -58,9 +46,6 @@ class TokenStorageService {
   async getAccessToken(): Promise<string | null> {
     if (this.inMemoryTokens.accessToken) {
       return this.inMemoryTokens.accessToken;
-    }
-    if (!this.persistToStorage) {
-      return null;
     }
     try {
       let token: string | null = null;
@@ -83,9 +68,6 @@ class TokenStorageService {
   async getRefreshToken(): Promise<string | null> {
     if (this.inMemoryTokens.refreshToken) {
       return this.inMemoryTokens.refreshToken;
-    }
-    if (!this.persistToStorage) {
-      return null;
     }
     try {
       let token: string | null = null;
@@ -143,7 +125,6 @@ class TokenStorageService {
     }
 
     this.inMemoryTokens = { accessToken, refreshToken };
-    this.persistToStorage = !!(accessToken || refreshToken);
     return { accessToken, refreshToken };
   }
 }

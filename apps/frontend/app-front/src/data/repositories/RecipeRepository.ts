@@ -11,7 +11,7 @@ export class RecipeRepository implements IRecipeRepository {
   }
 
   async post(request: RecipeCreateRequestDTO): Promise<Recipe> {
-    return apiClient.post<Recipe>('/recipes/add', request);
+    return apiClient.post<Recipe>('/recipes/add', request, 0);
   }
 
   async delete(id: string): Promise<boolean> {

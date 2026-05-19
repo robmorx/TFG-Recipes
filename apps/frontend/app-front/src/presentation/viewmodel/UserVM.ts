@@ -13,10 +13,10 @@ export const useUserVM = () => {
 
   const user = authUser;
 
-  const login = async (email: string, password: string, rememberMe: boolean = false) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const result = await userUseCase.login({ email, password }, rememberMe);
+      const result = await userUseCase.login({ email, password });
       setAuthUser(result.user);
       return result.token;
     } catch (error) {

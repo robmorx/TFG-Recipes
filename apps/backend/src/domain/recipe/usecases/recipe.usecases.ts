@@ -23,7 +23,7 @@ export class RecipeUseCase implements IRecipeUseCase {
     private aiService: AiService,
     configService: ConfigService,
   ) {
-    this.dailyRecipeLimit = configService.get<number>('DAILY_RECIPE_LIMIT', 2);
+    this.dailyRecipeLimit = parseInt(configService.get('DAILY_RECIPE_LIMIT', '2')?.toString() || '2', 10);
   }
 
   async getByUserUUID(user_uuid: string): Promise<RecipeResponseDTO[]> {
