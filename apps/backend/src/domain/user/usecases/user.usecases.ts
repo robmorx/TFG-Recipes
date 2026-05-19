@@ -46,7 +46,7 @@ export class UserUseCase implements IUserUseCase {
         name: entity.name,
         email: entity.email,
         password: entity.password,
-        isVerified: false,
+        isVerified: true,
         verificationCode: null as string | null,
         verificationCodeExpires: null as Date | null,
         resetPasswordCode: null as string | null,
@@ -56,13 +56,6 @@ export class UserUseCase implements IUserUseCase {
       };
       const userUuid = await this.userRepository.add(userEntity as any);
       await this.inventoryRepository.add({ user_uuid: userUuid });
-
-      const code = this.generateVerificationCode();
-      const expires = new Date();
-      expires.setHours(expires.getHours() + 24);
-      await this.userRepository.updateVerificationCode(userUuid, code, expires);
-
-      await this.mailService.sendVerificationCode(entity.email, code);
 
       const user = await this.userRepository.getByUUID(userUuid);
       return this.toResponseDTO(user!);

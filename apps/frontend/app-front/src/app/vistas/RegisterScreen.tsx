@@ -20,7 +20,14 @@ export default function RegisterScreen() {
     if (!name.trim() || !email.trim() || !password.trim()) return;
     try {
       await registerUser({ name: name.trim(), email: email.trim(), password });
-      router.replace(`/vistas/VerifyAccountScreen?email=${encodeURIComponent(email.trim())}` as any);
+      showAlert({
+        title: '¡Registro completado!',
+        message: 'Tu cuenta ha sido creada con éxito. Ya puedes iniciar sesión.',
+        singleButton: true,
+        confirmLabel: 'Entendido',
+        icon: 'check-circle',
+        onConfirm: () => router.replace('/vistas/LoginScreen'),
+      });
     } catch (error: any) {
       showAlert({ title: 'Error', message: error.message || 'No se pudo registrar', singleButton: true });
     }

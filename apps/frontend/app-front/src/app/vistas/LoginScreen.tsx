@@ -34,11 +34,11 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={s.inner}
       >
-         <View style={s.logoSection}>
-           <MaterialCommunityIcons name="food-variant" size={56} color={SBColors.STARBUCKS_GREEN} style={s.logoIcon} />
-           <Text style={s.logoTitle}>Mi Cocina</Text>
-           <Text style={s.logoSubtitle}>Gestiona tus recetas</Text>
-         </View>
+        <View style={s.logoSection}>
+          <MaterialCommunityIcons name="food-variant" size={56} color={SBColors.STARBUCKS_GREEN} style={s.logoIcon} />
+          <Text style={s.logoTitle}>CeroSobras</Text>
+          <Text style={s.logoSubtitle}>Gestiona tus recetas</Text>
+        </View>
 
         <ThemedCard padding="lg" style={s.card}>
           <Text style={s.title}>Bienvenido</Text>

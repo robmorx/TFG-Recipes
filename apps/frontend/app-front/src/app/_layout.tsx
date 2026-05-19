@@ -22,7 +22,7 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) {
     return (
       <View style={s.loadingContainer}>
-        <Text style={s.loadingText}>Mi Cocina</Text>
+        <Text style={s.loadingText}>CeroSobras</Text>
       </View>
     );
   }
@@ -38,7 +38,6 @@ export default function RootLayout() {
         <Stack.Screen name="vistas/RecetaDetalleScreen" />
         <Stack.Screen name="vistas/CrearRecetaScreen" />
         <Stack.Screen name="vistas/RegisterScreen" />
-        <Stack.Screen name="vistas/VerifyAccountScreen" />
         <Stack.Screen name="vistas/ForgotPasswordScreen" />
         <Stack.Screen name="vistas/VerifyResetCodeScreen" />
         <Stack.Screen name="vistas/ResetPasswordScreen" />

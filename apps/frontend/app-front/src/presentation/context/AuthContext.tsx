@@ -31,8 +31,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (userData) {
             setUser(userData);
           }
-        } catch (error) {
-          await tokenStorageService.clearTokens();
+        } catch (error: any) {
+          // Solo borrar tokens si el error indica específicamente que la sesión no es válida/expirada
+          const isAuthError = 
+            error.status === 401 || 
+            error.status === 403 || 
+            error.message?.includes('Sesión expirada') ||
+            error.message?.includes('No autorizado');
+          
+          if (isAuthError) {
+            await tokenStorageService.clearTokens();
+          } else {
+            console.warn('[AuthContext] Error de red o servidor al recuperar perfil (manteniendo sesión):', error);
+          }
         }
       }
     } catch (error) {

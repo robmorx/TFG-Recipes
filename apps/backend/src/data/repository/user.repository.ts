@@ -43,6 +43,7 @@ export class UserRepository implements IUserRepository {
         name: entity.name,
         email: entity.email,
         password: hashedPassword,
+        isVerified: true,
       },
     });
     return user.id;

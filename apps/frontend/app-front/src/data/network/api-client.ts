@@ -63,7 +63,9 @@ class ApiClient {
   private async callRefreshToken(): Promise<{ access_token: string; refresh_token: string }> {
     const refreshToken = await tokenStorageService.getRefreshToken();
     if (!refreshToken) {
-      throw new Error('No refresh token available');
+      const err = new Error('No refresh token available');
+      (err as any).status = 401;
+      throw err;
     }
 
     const response = await this.fetchWithTimeout(`${API_URL}/auth/refresh`, {
@@ -76,7 +78,9 @@ class ApiClient {
 
     const json = await response.json();
     if (!response.ok) {
-      throw new Error(json.message || 'Token refresh failed');
+      const err = new Error(json.message || 'Token refresh failed');
+      (err as any).status = response.status;
+      throw err;
     }
     return json.data;
   }
@@ -90,9 +94,12 @@ class ApiClient {
         await tokenStorageService.setTokens(tokens.access_token, tokens.refresh_token);
         this.processQueue(tokens.access_token);
         return tokens.access_token;
-      } catch (error) {
+      } catch (error: any) {
         this.processQueue(null, error);
-        await tokenStorageService.clearTokens();
+        // Only clear tokens if we are sure it's an authentication error (e.g. 400, 401, 403 status code)
+        if (error.message === 'No refresh token available' || (error.status && [400, 401, 403].includes(error.status))) {
+          await tokenStorageService.clearTokens();
+        }
         throw error;
       } finally {
         this.isRefreshing = false;
@@ -130,14 +137,26 @@ class ApiClient {
       try {
         await this.handleTokenRefresh();
         response = await makeRequest();
-      } catch (refreshError) {
-        throw new Error('Sesión expirada. Inicia sesión de nuevo.');
+      } catch (refreshError: any) {
+        // If it was a deliberate authentication failure, throw session expired error
+        if (
+          refreshError.message === 'No refresh token available' ||
+          (refreshError.status && [400, 401, 403].includes(refreshError.status))
+        ) {
+          const sessionErr = new Error('Sesión expirada. Inicia sesión de nuevo.');
+          (sessionErr as any).status = 401;
+          throw sessionErr;
+        }
+        // Otherwise, propagate the original network/timeout/server error
+        throw refreshError;
       }
     }
 
     const json = await response.json();
     if (!response.ok) {
-      throw new Error(json.message || 'Request failed');
+      const requestErr = new Error(json.message || 'Request failed');
+      (requestErr as any).status = response.status;
+      throw requestErr;
     }
     return json.data;
   }
