@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Inventory } from '../../domain/entities/inventory';
 import { IInventoryUseCase } from '../../domain/interfaces/IInventoryUseCase';
 import { container } from '../../core/container';
@@ -14,7 +14,7 @@ export const useInventoryVM = () => {
 
   console.log('[DEBUG] useInventoryVM - user from useAuth:', user);
 
-  const loadInventory = async () => {
+  const loadInventory = useCallback(async () => {
     if (!user?.user_uuid) {
       console.log('[DEBUG] useInventoryVM - no user_uuid, skipping');
       return;
@@ -30,14 +30,12 @@ export const useInventoryVM = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.user_uuid, inventoryUseCase]);
 
   useEffect(() => {
     console.log('[DEBUG] InventoryVM useEffect triggered, user:', user?.user_uuid);
-    if (user?.user_uuid) {
-      loadInventory();
-    }
-  }, [user?.user_uuid]);
+    loadInventory();
+  }, [loadInventory]);
 
   return { 
     inventory, 

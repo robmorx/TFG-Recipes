@@ -3,8 +3,8 @@ import {
   FlatList, StatusBar, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useRecipeVM } from '../../presentation/viewmodel/RecipeVM';
 import { Recipe, RecipeType } from '../../domain/entities/recipe';
 import { SBColors, SBSpacing, SBRadius, SBType, SBFonts, hapticLight } from '../../presentation/theme';
@@ -46,9 +46,11 @@ export default function RecetasScreen() {
   const { recipes, loadRecipes, deleteRecipe, isLoading } = useRecipeVM();
   const [filterType, setFilterType] = useState<RecipeType | 'ALL'>('ALL');
 
-  useEffect(() => {
-    loadRecipes();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadRecipes();
+    }, [loadRecipes])
+  );
 
   const filteredRecipes = filterType === 'ALL'
     ? recipes

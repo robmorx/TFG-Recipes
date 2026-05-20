@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Recipe } from '../../domain/entities/recipe';
 import { IRecipeUseCase } from '../../domain/interfaces/IRecipeUseCase';
 import { RecipeCreateRequestDTO } from '../../domain/dto/recipe.create.request.dto';
@@ -13,17 +13,17 @@ export const useRecipeVM = () => {
   const recipeUseCase = container.get<IRecipeUseCase>(TYPES.IRecipeUseCase);
   const { user, setUser } = useAuth();
 
-  const loadRecipes = async () => {
+  const loadRecipes = useCallback(async () => {
     if (!user?.user_uuid) return;
     setIsLoading(true);
     const data = await recipeUseCase.getByUserId(user.user_uuid);
     setRecipes(data);
     setIsLoading(false);
-  };
+  }, [user?.user_uuid, recipeUseCase]);
 
   useEffect(() => {
     loadRecipes();
-  }, [user?.user_uuid]);
+  }, [loadRecipes]);
 
   const addRecipe = async (request: RecipeCreateRequestDTO): Promise<Recipe> => {
     const result = await recipeUseCase.post(request);

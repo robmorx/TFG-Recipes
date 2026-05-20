@@ -4,8 +4,8 @@ import {
   ScrollView, Modal, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useState, useCallback } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useInventoryVM } from '../../presentation/viewmodel/InventoryVM';
 import { useItemVM } from '../../presentation/viewmodel/ItemVM';
 import { useAuth } from '../../presentation/context/AuthContext';
@@ -150,6 +150,12 @@ export default function InventarioScreen() {
 
   const { inventory, loadInventory, isLoading } = useInventoryVM();
   const { addItem, removeItem, editItem } = useItemVM();
+
+  useFocusEffect(
+    useCallback(() => {
+      loadInventory();
+    }, [loadInventory])
+  );
   const { alertProps, showAlert } = useAlert();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
