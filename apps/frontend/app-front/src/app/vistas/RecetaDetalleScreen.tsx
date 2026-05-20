@@ -1,9 +1,11 @@
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  SafeAreaView, StatusBar, Modal, useWindowDimensions,
+  StatusBar, Modal, useWindowDimensions,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
+  type ViewStyle,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Recipe, RecipeStep, RecipeType } from '../../domain/entities/recipe';
@@ -71,7 +73,7 @@ function AnimatedNavBtn({
   }));
 
   let btnStyle: ViewStyle = s.navBtnPrev;
-  let textColor = SBColors.TEXT_BLACK;
+  let textColor: string = SBColors.TEXT_BLACK;
 
   if (variant === 'next' || variant === 'finish') {
     btnStyle = s.navBtnNext;
@@ -265,6 +267,10 @@ export default function RecetaDetalleScreen() {
             ref={scrollRef}
             horizontal
             pagingEnabled
+            snapToInterval={screenWidth}
+            decelerationRate="fast"
+            snapToAlignment="center"
+            disableIntervalMomentum={true}
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={handleScrollEnd}
           >

@@ -1,6 +1,7 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar,
+  View, Text, TouchableOpacity, StyleSheet, StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useUserVM } from '../../presentation/viewmodel/UserVM';

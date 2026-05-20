@@ -1,7 +1,8 @@
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  FlatList, SafeAreaView, StatusBar, ScrollView,
+  FlatList, StatusBar, ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useRecipeVM } from '../../presentation/viewmodel/RecipeVM';
@@ -28,8 +29,8 @@ const RECIPE_TYPE_OPTIONS: RecipeTypeOption[] = [
   { value: RecipeType.DINNER, label: 'Cena', icon: 'weather-night' },
 ];
 
-const RECIPE_ICONS: (keyof typeof MaterialCommunityIcons.glyphMap)[] = [
-  'egg-fried', 'food-variant', 'noodle', 'pot-steam', 'soup', 'sandwich'
+const RECIPE_ICONS: any[] = [
+  'egg-fried', 'food-variant', 'noodles', 'pot-steam', 'pot-soup', 'hamburger'
 ];
 
 const shadowFrap = {

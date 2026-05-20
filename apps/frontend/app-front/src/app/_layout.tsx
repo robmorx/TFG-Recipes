@@ -11,6 +11,8 @@ import {
 import { View, Text, StyleSheet } from "react-native";
 import { SBColors, SBFonts, SBType } from "../presentation/theme";
 
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -28,21 +30,23 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="vistas/LoginScreen" />
-        <Stack.Screen name="vistas/HomeScreen" />
-        <Stack.Screen name="vistas/InventarioScreen" />
-        <Stack.Screen name="vistas/RecetasScreen" />
-        <Stack.Screen name="vistas/RecetaDetalleScreen" />
-        <Stack.Screen name="vistas/CrearRecetaScreen" />
-        <Stack.Screen name="vistas/RegisterScreen" />
-        <Stack.Screen name="vistas/ForgotPasswordScreen" />
-        <Stack.Screen name="vistas/VerifyResetCodeScreen" />
-        <Stack.Screen name="vistas/ResetPasswordScreen" />
-      </Stack>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="vistas/LoginScreen" />
+          <Stack.Screen name="vistas/HomeScreen" />
+          <Stack.Screen name="vistas/InventarioScreen" />
+          <Stack.Screen name="vistas/RecetasScreen" />
+          <Stack.Screen name="vistas/RecetaDetalleScreen" />
+          <Stack.Screen name="vistas/CrearRecetaScreen" />
+          <Stack.Screen name="vistas/RegisterScreen" />
+          <Stack.Screen name="vistas/ForgotPasswordScreen" />
+          <Stack.Screen name="vistas/VerifyResetCodeScreen" />
+          <Stack.Screen name="vistas/ResetPasswordScreen" />
+        </Stack>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 
