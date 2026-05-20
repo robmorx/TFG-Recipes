@@ -1,7 +1,7 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   FlatList, StatusBar, KeyboardAvoidingView, Platform,
-  ScrollView, Modal,
+  ScrollView, Modal, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
@@ -26,6 +26,20 @@ const QUANTITY_UNIT_OPTIONS = [
   { value: QuantityUnit.KILOGRAMS, label: 'Kg' },
   { value: QuantityUnit.GRAMS, label: 'g' },
 ];
+
+const COMMON_FOODS = [
+  { id: '1', name: 'Tomate', image: require('../../../assets/images/foods/tomate.png'), defaultUnit: QuantityUnit.UNITS },
+  { id: '2', name: 'Leche', image: require('../../../assets/images/foods/leche.png'), defaultUnit: QuantityUnit.LITRES },
+  { id: '3', name: 'Huevos', image: require('../../../assets/images/foods/huevos.png'), defaultUnit: QuantityUnit.UNITS },
+  { id: '4', name: 'Manzana', image: require('../../../assets/images/foods/manzana.png'), defaultUnit: QuantityUnit.UNITS },
+  { id: '5', name: 'Pollo', image: require('../../../assets/images/foods/pollo.png'), defaultUnit: QuantityUnit.KILOGRAMS },
+  { id: '6', name: 'Pan', image: require('../../../assets/images/foods/pan.png'), defaultUnit: QuantityUnit.UNITS },
+];
+
+const getFoodImage = (name: string) => {
+  const food = COMMON_FOODS.find(f => f.name.toLowerCase() === name.toLowerCase().trim());
+  return food ? food.image : null;
+};
 
 function AnimatedBackBtn({ onPress }: { onPress: () => void }) {
   const scale = useSharedValue(1);
@@ -93,10 +107,16 @@ function AnimatedItemRow({
     transform: [{ scale: scale.value }],
   }));
 
+  const foodImage = getFoodImage(item.name);
+
   return (
     <View style={[s.itemRow, animatedStyle]}>
-      <View style={s.itemIcon}>
-        <MaterialCommunityIcons name="carrot" size={22} color={SBColors.GREEN_ACCENT} />
+      <View style={[s.itemIcon, foodImage && { backgroundColor: 'transparent' }]}>
+        {foodImage ? (
+          <Image source={foodImage} style={s.rowImage} />
+        ) : (
+          <MaterialCommunityIcons name="carrot" size={22} color={SBColors.GREEN_ACCENT} />
+        )}
       </View>
       <View style={s.itemInfo}>
         <Text style={s.itemName}>{item.name}</Text>
@@ -139,6 +159,34 @@ export default function InventarioScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editQuantity, setEditQuantity] = useState('');
   const [editQuantityUnit, setEditQuantityUnit] = useState<QuantityUnit>(QuantityUnit.UNITS);
+
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+  const [selectedCommonFood, setSelectedCommonFood] = useState<any>(null);
+  const [quickAddQuantity, setQuickAddQuantity] = useState('1');
+  const [quickAddUnit, setQuickAddUnit] = useState<QuantityUnit>(QuantityUnit.UNITS);
+
+  const handleCloseQuickAdd = () => {
+    setShowQuickAddModal(false);
+    setSelectedCommonFood(null);
+  };
+
+  const handleConfirmQuickAdd = async () => {
+    if (!selectedCommonFood || !user?.user_uuid) return;
+    try {
+      await addItem({
+        inventory_uuid: user.user_uuid,
+        name: selectedCommonFood.name,
+        quantity: parseInt(quickAddQuantity) || 1,
+        quantity_unit: quickAddUnit,
+      });
+      setShowQuickAddModal(false);
+      setSelectedCommonFood(null);
+      await loadInventory();
+      showAlert({ title: 'Éxito', message: `${selectedCommonFood.name} añadido`, singleButton: true });
+    } catch (error: any) {
+      showAlert({ title: 'Error', message: error.message || 'No se pudo añadir', singleButton: true });
+    }
+  };
 
   const handleAddItem = async () => {
     const trimmed = name.trim();
@@ -276,6 +324,13 @@ export default function InventarioScreen() {
               fullWidth
               style={s.addBtn}
             />
+            <ThemedButton
+              variant="secondary-outline"
+              label="Añadir rápido (Imágenes)"
+              onPress={() => setShowQuickAddModal(true)}
+              fullWidth
+              style={s.quickAddBtn}
+            />
           </ThemedCard>
 
           <View style={s.filterSection}>
@@ -379,6 +434,101 @@ export default function InventarioScreen() {
                 style={s.modalSaveBtn}
               />
             </View>
+          </ThemedCard>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showQuickAddModal}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCloseQuickAdd}
+      >
+        <View style={s.modalOverlay}>
+          <ThemedCard padding="lg" style={s.quickAddModalCard}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>Añadir Rápido</Text>
+              <TouchableOpacity onPress={handleCloseQuickAdd}>
+                <MaterialCommunityIcons name="close" size={24} color={SBColors.TEXT_BLACK_SOFT} />
+              </TouchableOpacity>
+            </View>
+
+            {!selectedCommonFood ? (
+              <ScrollView showsVerticalScrollIndicator={false} style={s.foodsScroll}>
+                <View style={s.foodsGrid}>
+                  {COMMON_FOODS.map(food => (
+                    <TouchableOpacity
+                      key={food.id}
+                      style={s.foodGridItem}
+                      onPress={() => {
+                        setSelectedCommonFood(food);
+                        setQuickAddQuantity('1');
+                        setQuickAddUnit(food.defaultUnit);
+                        hapticLight();
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Image source={food.image} style={s.foodImage} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            ) : (
+              <View>
+                <View style={s.selectedFoodHeader}>
+                  <Image source={selectedCommonFood.image} style={s.selectedFoodImage} />
+                  <Text style={s.selectedFoodTitle}>{selectedCommonFood.name}</Text>
+                </View>
+
+                <View style={s.modalField}>
+                  <Text style={s.label}>Cantidad</Text>
+                  <TextInput
+                    style={s.input}
+                    value={quickAddQuantity}
+                    onChangeText={setQuickAddQuantity}
+                    keyboardType="numeric"
+                    returnKeyType="done"
+                  />
+                </View>
+
+                <View style={s.modalField}>
+                  <Text style={s.label}>Unidad</Text>
+                  <View style={s.unitChipRow}>
+                    {QUANTITY_UNIT_OPTIONS.map(opt => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        style={[s.unitChip, quickAddUnit === opt.value && s.unitChipActive]}
+                        onPress={() => {
+                          setQuickAddUnit(opt.value);
+                          hapticLight();
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[s.unitChipText, quickAddUnit === opt.value && s.unitChipTextActive]}>
+                          {opt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={s.modalActions}>
+                  <TouchableOpacity
+                    style={s.modalCancelBtn}
+                    onPress={() => setSelectedCommonFood(null)}
+                  >
+                    <Text style={s.modalCancelText}>Volver</Text>
+                  </TouchableOpacity>
+                  <ThemedButton
+                    variant="primary-filled"
+                    label="Añadir"
+                    onPress={handleConfirmQuickAdd}
+                    fullWidth={false}
+                    style={s.modalSaveBtn}
+                  />
+                </View>
+              </View>
+            )}
           </ThemedCard>
         </View>
       </Modal>
@@ -580,5 +730,38 @@ const s = StyleSheet.create({
   },
   modalSaveBtn: {
     flex: 1,
+  },
+  quickAddBtn: {
+    marginTop: 8,
+  },
+  quickAddModalCard: {
+    width: '100%', maxWidth: 400, maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16,
+  },
+  foodsScroll: {
+    maxHeight: 400,
+  },
+  foodsGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '5%',
+  },
+  foodGridItem: {
+    width: '30%', aspectRatio: 1, marginBottom: 16,
+  },
+  foodImage: {
+    width: '100%', height: '100%', borderRadius: 16,
+  },
+  rowImage: {
+    width: 40, height: 40, borderRadius: 10, backgroundColor: SBColors.WHITE, borderWidth: 1, borderColor: SBColors.CERAMIC,
+  },
+  selectedFoodHeader: {
+    alignItems: 'center', marginBottom: 20,
+  },
+  selectedFoodImage: {
+    width: 80, height: 80, borderRadius: 40, marginBottom: 12, backgroundColor: SBColors.WHITE,
+  },
+  selectedFoodTitle: {
+    fontSize: 20, fontFamily: SBFonts.semibold, color: SBColors.STARBUCKS_GREEN,
   },
 });
