@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "Cerosobras",
+    "slug": "cerosobras",
+    "version": "1.0.0",
+    "android": {
+      "package": "com.robmor.cerosobras"
+    }
+  }
+}
