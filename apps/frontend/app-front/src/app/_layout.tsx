@@ -36,6 +36,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="vistas/LoginScreen" />
           <Stack.Screen name="vistas/HomeScreen" />
+          <Stack.Screen name="vistas/AdminScreen" />
           <Stack.Screen name="vistas/InventarioScreen" />
           <Stack.Screen name="vistas/RecetasScreen" />
           <Stack.Screen name="vistas/RecetaDetalleScreen" />

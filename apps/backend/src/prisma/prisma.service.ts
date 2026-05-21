@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class PrismaService implements OnModuleInit {
@@ -35,5 +36,24 @@ export class PrismaService implements OnModuleInit {
 
   async onModuleInit() {
     await this._prisma.$connect();
+
+    const adminEmail = 'admin@admin.com';
+    const existingAdmin = await this._prisma.user.findUnique({
+      where: { email: adminEmail }
+    });
+
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash('admin', 10);
+      await this._prisma.user.create({
+        data: {
+          name: 'Admin',
+          email: adminEmail,
+          password: hashedPassword,
+          role: 'SUPERUSER',
+          isVerified: true
+        }
+      });
+      console.log('Admin user seeded successfully');
+    }
   }
 }

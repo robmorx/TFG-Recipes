@@ -2,8 +2,10 @@ import { User } from '../entities/user';
 
 export interface IUserRepository {
   get(): Promise<User | null>;
+  getList(): Promise<User[]>;
   post(user: { name: string; email: string; password: string }): Promise<User>;
   getByUUID(user_uuid: string): Promise<User | null>;
+  delete(user_uuid: string): Promise<{ message?: string }>;
   login(credentials: { email: string; password: string }): Promise<{ token: string; refreshToken: string; user: User }>;
   verifyAccount(email: string, code: string): Promise<{ message: string }>;
   forgotPassword(email: string): Promise<{ message: string }>;

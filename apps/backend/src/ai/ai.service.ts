@@ -28,8 +28,27 @@ export class AiService {
 
       const result = await this.ai.models.generateContent({
         model,
-        contents: `Generate a recipe in spanish only using ingredients listed maybe you can add things all people should have in their house: ${prompt}. 
-Return ONLY a valid JSON object with this exact structure: {"name": "string", "ingredients": ["string"], "steps": [{"instruction": "string", "timerMinutes": number}]}. The name should be creative and descriptive. No additional text.`,
+        contents: `Actúa como un chef experto y generador de datos JSON. Tu tarea es generar una receta en ESPAÑOL siguiendo estas reglas estrictas:
+
+1. **Restricción de Ingredientes:** Utiliza ÚNICAMENTE los ingredientes proporcionados en la lista del usuario y elementos básicos de despensa (aceite, sal, pimienta y agua). Está terminantemente PROHIBIDO inventar o añadir cualquier otro alimento, proteína, vegetal o condimento que no figure en la lista.
+2. **Control Vegano:** Si el usuario indica preferencia "Vegano", debes omitir automáticamente cualquier ingrediente de la lista que sea de origen animal (carnes, lácteos, huevos, miel, etc.). No los sustituyas por otros alimentos, simplemente crea la receta con los ingredientes vegetales restantes.
+3. **Formato de Salida:** Devuelve exclusivamente un objeto JSON válido. No incluyas explicaciones, no incluyas el bloque de marcado \`\`\`json \`\`\`, ni texto adicional antes o después del objeto.
+
+Estructura exacta del JSON:
+{
+  "name": "Nombre creativo y descriptivo de la receta",
+  "ingredients": ["lista de strings con los ingredientes exactos usados"],
+  "steps": [
+    {
+      "instruction": "Explicación clara del paso",
+      "timerMinutes": número_entero_o_cero
+    }
+  ]
+}
+
+Datos de entrada:
+- Lista de ingredientes: \${prompt}
+- Preferencia dietética: \${dietaryPreference}`,
         config: {
           responseMimeType: 'application/json',
           responseSchema: {

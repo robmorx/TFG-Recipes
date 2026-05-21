@@ -9,13 +9,17 @@ import LoginScreen from "./vistas/LoginScreen";
 
 export default function Index() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.replace("/vistas/HomeScreen");
+      if (user?.role === 'SUPERUSER') {
+        router.replace("/vistas/AdminScreen" as any);
+      } else {
+        router.replace("/vistas/HomeScreen");
+      }
     }
-  }, [isLoading, isAuthenticated]);
+  }, [isLoading, isAuthenticated, user]);
 
   if (isLoading) {
     return (

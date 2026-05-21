@@ -10,6 +10,10 @@ export class UserRepository implements IUserRepository {
     return apiClient.get<User>('/users/profile');
   }
 
+  async getList(): Promise<User[]> {
+    return apiClient.get<User[]>('/users');
+  }
+
   async post(user: { name: string; email: string; password: string }): Promise<User> {
     const created = await apiClient.post<User>('/users/add', user);
     return created;
@@ -17,6 +21,10 @@ export class UserRepository implements IUserRepository {
 
   async getByUUID(user_uuid: string): Promise<User | null> {
     return apiClient.get<User>(`/users/${user_uuid}`);
+  }
+
+  async delete(user_uuid: string): Promise<{ message?: string }> {
+    return apiClient.delete<{ message?: string }>('/users/delete', { user_uuid });
   }
 
   async login(

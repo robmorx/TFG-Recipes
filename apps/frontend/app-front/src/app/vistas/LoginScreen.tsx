@@ -18,8 +18,15 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) return;
     try {
-      await login(email.trim(), password);
-      router.replace('/vistas/HomeScreen');
+      const result = await login(email.trim(), password);
+      // login no longer returns just token if we rely on user state, but it resolves when done.
+      // Wait, UserVM.login might return just token, let's just use router.replace based on user context or login result.
+      // Actually login resolves with token. Let's redirect based on user role from userUseCase inside login, or check it.
+      // To be safe, wait a tick for AuthContext to update, or use the current user state later.
+      // Since LoginScreen sets user state, we can't reliably read `user` here. Let's just push to index and let index decide, or we modify index.
+      // Actually let's redirect to '/vistas/AdminScreen' if user role is SUPERUSER.
+      // But login returns token. Let's redirect to index and let index do the routing.
+      router.replace('/');
     } catch (error: any) {
       showAlert({ title: 'Error', message: error.message || 'Credenciales inválidas', singleButton: true });
     }

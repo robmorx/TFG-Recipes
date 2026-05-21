@@ -162,6 +162,15 @@ export default function HomeScreen() {
              subtitle="Explorar recetas"
              onPress={() => router.push('/vistas/RecetasScreen')}
            />
+           {user?.role === 'SUPERUSER' && (
+             <MenuItem
+               icon="shield-account"
+               label="Panel de Administración"
+               subtitle="Gestionar usuarios"
+               onPress={() => router.push('/vistas/AdminScreen' as any)}
+               iconColor={SBColors.STARBUCKS_GREEN}
+             />
+           )}
          </View>
 
          <View style={s.fabWrapper}>

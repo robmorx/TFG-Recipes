@@ -70,6 +70,24 @@ export const useUserVM = () => {
     }
   };
 
+  const getList = async () => {
+    setIsLoading(true);
+    try {
+      return await userUseCase.getList();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteUser = async (user_uuid: string) => {
+    setIsLoading(true);
+    try {
+      return await userUseCase.delete(user_uuid);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return { 
     user, 
     isLoading: isLoading || authIsLoading, 
@@ -79,6 +97,8 @@ export const useUserVM = () => {
     verifyAccount, 
     forgotPassword, 
     verifyResetCode, 
-    resetPassword 
+    resetPassword,
+    getList,
+    deleteUser
   };
 };

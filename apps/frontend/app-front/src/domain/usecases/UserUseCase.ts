@@ -18,6 +18,10 @@ export class UserUseCase implements IUserUseCase {
     return this.userRepository.get();
   }
 
+  async getList(): Promise<User[]> {
+    return this.userRepository.getList();
+  }
+
   async post(user: { name: string; email: string; password: string }): Promise<User> {
     return this.userRepository.post(user);
   }
@@ -42,5 +46,9 @@ export class UserUseCase implements IUserUseCase {
 
   async resetPassword(email: string, code: string, newPassword: string): Promise<{ message: string }> {
     return this.userRepository.resetPassword(email, code, newPassword);
+  }
+
+  async delete(user_uuid: string): Promise<{ message?: string }> {
+    return this.userRepository.delete(user_uuid);
   }
 }
