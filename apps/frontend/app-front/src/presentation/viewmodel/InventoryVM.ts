@@ -10,8 +10,6 @@ export const useInventoryVM = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  const inventoryUseCase = container.get<IInventoryUseCase>(TYPES.IInventoryUseCase);
-
   console.log('[DEBUG] useInventoryVM - user from useAuth:', user);
 
   const loadInventory = useCallback(async () => {
@@ -22,6 +20,7 @@ export const useInventoryVM = () => {
     console.log('[DEBUG] InventoryVM.loadInventory called with uuid:', user.user_uuid);
     setIsLoading(true);
     try {
+      const inventoryUseCase = container.get<IInventoryUseCase>(TYPES.IInventoryUseCase);
       const data = await inventoryUseCase.getByUserUUID(user.user_uuid);
       console.log('[DEBUG] InventoryVM.loadInventory - API response:', data);
       setInventory(data);
@@ -30,7 +29,7 @@ export const useInventoryVM = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.user_uuid, inventoryUseCase]);
+  }, [user?.user_uuid]);
 
   useEffect(() => {
     console.log('[DEBUG] InventoryVM useEffect triggered, user:', user?.user_uuid);

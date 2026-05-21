@@ -10,22 +10,23 @@ export const useRecipeVM = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const recipeUseCase = container.get<IRecipeUseCase>(TYPES.IRecipeUseCase);
   const { user, setUser } = useAuth();
 
   const loadRecipes = useCallback(async () => {
     if (!user?.user_uuid) return;
     setIsLoading(true);
+    const recipeUseCase = container.get<IRecipeUseCase>(TYPES.IRecipeUseCase);
     const data = await recipeUseCase.getByUserId(user.user_uuid);
     setRecipes(data);
     setIsLoading(false);
-  }, [user?.user_uuid, recipeUseCase]);
+  }, [user?.user_uuid]);
 
   useEffect(() => {
     loadRecipes();
   }, [loadRecipes]);
 
   const addRecipe = async (request: RecipeCreateRequestDTO): Promise<Recipe> => {
+    const recipeUseCase = container.get<IRecipeUseCase>(TYPES.IRecipeUseCase);
     const result = await recipeUseCase.post(request);
     
     // Update daily recipe count in the user context
@@ -42,6 +43,7 @@ export const useRecipeVM = () => {
   };
 
   const deleteRecipe = async (id: string) => {
+    const recipeUseCase = container.get<IRecipeUseCase>(TYPES.IRecipeUseCase);
     await recipeUseCase.delete(id);
     
     // Optimistically update daily recipe count in the user context
