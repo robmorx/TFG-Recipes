@@ -15,6 +15,9 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://tfg-recipes.onrender.com/api"
+      },
+      "android": {
+        "buildType": "apk"
       }
     },
     "production": {
