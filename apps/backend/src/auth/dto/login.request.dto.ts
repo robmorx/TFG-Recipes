@@ -29,4 +29,13 @@ export class LoginResponseDTO {
 
   @ApiProperty()
   email: string;
+
+  @ApiProperty()
+  role: string;
+
+  @ApiProperty({ required: false })
+  dailyRecipeCount?: number;
+
+  @ApiProperty({ required: false })
+  dailyRecipeLimit?: number;
 }

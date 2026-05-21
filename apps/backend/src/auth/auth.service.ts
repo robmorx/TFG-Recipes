@@ -7,6 +7,8 @@ import { JwtService } from '@nestjs/jwt';
 import { createHash, randomBytes } from 'crypto';
 import { UserRepository } from '../data/repository/user.repository';
 import { RefreshTokenRepository } from '../data/repository/refresh-token.repository';
+import { RecipeRepository } from '../data/repository/recipe.repository';
+import { ConfigService } from '@nestjs/config';
 import { MailService } from '../mail/mail.service';
 import { LoginRequestDTO, LoginResponseDTO } from './dto/login.request.dto';
 import { RefreshTokenRequestDTO, RefreshTokenResponseDTO } from './dto/refresh-token.request.dto';
@@ -24,6 +26,8 @@ export class AuthService {
   constructor(
     private userRepository: UserRepository,
     private refreshTokenRepository: RefreshTokenRepository,
+    private recipeRepository: RecipeRepository,
+    private configService: ConfigService,
     private jwtService: JwtService,
     private mailService: MailService,
   ) {}
@@ -47,12 +51,20 @@ export class AuthService {
     const accessToken = this.generateAccessToken(user.user_uuid, user.email, user.role);
     const refreshToken = await this.generateAndStoreRefreshToken(user.user_uuid);
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dailyRecipeCount = await this.recipeRepository.countByUserSince(user.user_uuid, today);
+    const dailyRecipeLimit = parseInt(this.configService.get('DAILY_RECIPE_LIMIT', '2')?.toString() || '2', 10);
+
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
       user_uuid: user.user_uuid,
       name: user.name,
       email: user.email,
+      role: user.role,
+      dailyRecipeCount,
+      dailyRecipeLimit,
     };
   }
 

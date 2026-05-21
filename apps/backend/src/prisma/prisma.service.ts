@@ -44,7 +44,7 @@ export class PrismaService implements OnModuleInit {
 
     if (!existingAdmin) {
       const hashedPassword = await bcrypt.hash('admin', 10);
-      await this._prisma.user.create({
+      const newUser = await this._prisma.user.create({
         data: {
           name: 'Admin',
           email: adminEmail,
@@ -53,7 +53,24 @@ export class PrismaService implements OnModuleInit {
           isVerified: true
         }
       });
-      console.log('Admin user seeded successfully');
+      await this._prisma.inventory.create({
+        data: {
+          userId: newUser.id
+        }
+      });
+      console.log('Admin user and inventory seeded successfully');
+    } else {
+      const adminInventory = await this._prisma.inventory.findUnique({
+        where: { userId: existingAdmin.id }
+      });
+      if (!adminInventory) {
+        await this._prisma.inventory.create({
+          data: {
+            userId: existingAdmin.id
+          }
+        });
+        console.log('Admin inventory seeded successfully');
+      }
     }
   }
 }

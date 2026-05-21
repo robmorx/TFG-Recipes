@@ -48,9 +48,13 @@ export default function AdminScreen() {
     });
   };
 
-  const handleDelete = (userUuid: string) => {
+  const handleDelete = (userUuid: string, userRole?: string) => {
     if (userUuid === currentUser?.user_uuid || userUuid === currentUser?.id) {
       showAlert({ title: 'Error', message: 'No puedes eliminar tu propia cuenta de administrador', singleButton: true });
+      return;
+    }
+    if (userRole === 'SUPERUSER') {
+      showAlert({ title: 'Error', message: 'No puedes eliminar a otro administrador', singleButton: true });
       return;
     }
     showAlert({
@@ -79,12 +83,12 @@ export default function AdminScreen() {
         <View style={s.userInfo}>
           <Text style={s.userName}>{item.name}</Text>
           <Text style={s.userEmail}>{item.email}</Text>
-          <Text style={s.userRole}>Rol: {item.role || 'USER'} {isMe ? '(Tú)' : ''}</Text>
+            <Text style={s.userRole}>Rol: {item.role || 'USER'}</Text>
         </View>
         <TouchableOpacity
           style={s.deleteBtn}
-          onPress={() => (item.user_uuid || item.id) && handleDelete(item.user_uuid || item.id)}
-          disabled={isMe}
+          onPress={() => (item.user_uuid || item.id) && handleDelete(item.user_uuid || item.id, item.role)}
+          disabled={isMe || item.role === 'SUPERUSER'}
         >
           <MaterialCommunityIcons 
             name="delete" 
@@ -101,6 +105,9 @@ export default function AdminScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={SBColors.NEUTRAL_WARM} />
       <View style={s.container}>
         <View style={s.header}>
+          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color={SBColors.TEXT_BLACK_SOFT} />
+          </TouchableOpacity>
           <Text style={s.title}>Panel de Administración</Text>
           <TouchableOpacity onPress={handleLogout} style={s.logoutBtn}>
             <MaterialCommunityIcons name="logout" size={24} color={SBColors.TEXT_BLACK_SOFT} />
@@ -143,6 +150,7 @@ const s = StyleSheet.create({
   },
   title: { fontSize: 22, fontFamily: SBFonts.bold, color: SBColors.STARBUCKS_GREEN, flex: 1 },
   logoutBtn: { padding: 8 },
+  backBtn: { padding: 8 },
   listContainer: { paddingBottom: SBSpacing.space9 },
   userCard: {
     flexDirection: 'row',

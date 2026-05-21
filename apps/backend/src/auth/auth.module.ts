@@ -8,6 +8,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UserRepository } from '../data/repository/user.repository';
 import { RefreshTokenRepository } from '../data/repository/refresh-token.repository';
+import { RecipeRepository } from '../data/repository/recipe.repository';
 import { MailModule } from '../mail/mail.module';
 
 @Module({
@@ -22,9 +23,10 @@ import { MailModule } from '../mail/mail.module';
       }),
     }),
     MailModule,
+    ConfigModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard, UserRepository, RefreshTokenRepository],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard, UserRepository, RefreshTokenRepository, RecipeRepository],
   exports: [JwtAuthGuard],
 })
 export class AuthModule {}

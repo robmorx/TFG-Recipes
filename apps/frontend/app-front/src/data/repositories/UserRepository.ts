@@ -36,6 +36,9 @@ export class UserRepository implements IUserRepository {
       user_uuid: string;
       name: string;
       email: string;
+      role: string;
+      dailyRecipeCount?: number;
+      dailyRecipeLimit?: number;
     }>('/auth/login', credentials);
     await tokenStorageService.setTokens(response.access_token, response.refresh_token);
 
@@ -47,6 +50,9 @@ export class UserRepository implements IUserRepository {
         user_uuid: response.user_uuid,
         name: response.name,
         email: response.email,
+        role: response.role,
+        dailyRecipeCount: response.dailyRecipeCount,
+        dailyRecipeLimit: response.dailyRecipeLimit,
       },
     };
   }
