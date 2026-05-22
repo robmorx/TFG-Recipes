@@ -5,6 +5,66 @@
 > Aplicación móvil para generar recetas de cocina personalizadas utilizando **Inteligencia Artificial (Google Gemini)**, basándose en los ingredientes que el usuario tiene en su inventario. El objetivo es **reducir el desperdicio de alimentos** permitiendo al usuario cocinar solo con lo que ya tiene en casa.
 
 ---
+## ⚡ Comandos Rápidos
+ 
+### Instalación
+ 
+```bash
+pnpm install                        # Instala todas las dependencias del monorepo
+```
+ 
+### Desarrollo
+ 
+```bash
+pnpm dev                            # Arranca backend + frontend en paralelo (Turborepo)
+```
+ 
+```bash
+# O por separado:
+cd apps/backend && pnpm start:dev           # Backend en modo watch (puerto 3000)
+cd apps/frontend/app-front && npx expo start   # Frontend Expo (escaner QR / emulador)
+```
+ 
+### Base de datos
+ 
+```bash
+cd apps/backend
+npx prisma migrate deploy           # Aplica todas las migraciones pendientes
+npx prisma migrate dev              # Crea y aplica una nueva migración (desarrollo)
+npx prisma generate                 # Regenera el cliente de Prisma tras cambios en schema
+npx prisma studio                   # Abre el explorador visual de la DB en el navegador
+```
+ 
+### Build producción
+ 
+```bash
+pnpm build                          # Build completo del monorepo (Turborepo)
+```
+ 
+```bash
+# O por separado:
+cd apps/backend && pnpm build       # Compila NestJS a /dist
+cd apps/backend && pnpm start:prod  # Arranca el backend compilado
+```
+ 
+```bash
+# Frontend — build nativo con EAS:
+cd apps/frontend/app-front
+npx eas build --platform android    # Build APK/AAB para Android
+npx eas build --platform ios        # Build IPA para iOS
+npx eas build --platform all        # Build para ambas plataformas
+```
+ 
+### Utilidades
+ 
+```bash
+pnpm lint                           # Linting en todo el monorepo
+pnpm --filter backend test          # Tests del backend
+pnpm --filter backend test:e2e      # Tests end-to-end del backend
+```
+ 
+---
+---
 
 ## 📋 Índice
 
