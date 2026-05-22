@@ -63,8 +63,8 @@ export class UsersController {
   @Delete('delete')
   @ApiOperation({ summary: 'Delete user by UUID' })
   @ApiResponse({ status: 200, description: 'User deleted' })
-  async delete(@Body() dto: UserDeleteRequestDTO) {
-    return this.userUseCase.delete(dto.user_uuid);
+  async delete(@Body() dto: string) {
+    return this.userUseCase.delete(dto);
   }
 
   @Put('update')
