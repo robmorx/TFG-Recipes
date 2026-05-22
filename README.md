@@ -34,6 +34,15 @@
 13. [Instalación y Puesta en Marcha](#-instalación-y-puesta-en-marcha)
 
 ---
+## WEB
+  URL: https://tfg-recipes-frontend-dqq47lpjh-robmor92x-2625s-projects.vercel.app/
+## Usuarios
+  SUPERUSER:
+    Usuario: admin@admin.com
+    Contraseña: admin
+  USER:
+    Usuario: user@user.com
+    Contraseña: user123
 
 ## 🌟 Descripción General
 
