@@ -31,8 +31,7 @@ export class AiService {
         contents: `Actúa como un chef experto y generador de datos JSON. Tu tarea es generar una receta en ESPAÑOL siguiendo estas reglas estrictas:
 
 1. **Restricción de Ingredientes:** Utiliza ÚNICAMENTE los ingredientes proporcionados en la lista del usuario y elementos básicos de despensa (aceite, sal, pimienta y agua). Está terminantemente PROHIBIDO inventar o añadir cualquier otro alimento, proteína, vegetal o condimento que no figure en la lista.
-2. **Control Vegano:** Si el usuario indica preferencia "Vegano", debes omitir automáticamente cualquier ingrediente de la lista que sea de origen animal (carnes, lácteos, huevos, miel, etc.). No los sustituyas por otros alimentos, simplemente crea la receta con los ingredientes vegetales restantes si no hay suficientes omite la restriccion "Vegano".
-3. **Formato de Salida:** Devuelve exclusivamente un objeto JSON válido. No incluyas explicaciones, no incluyas el bloque de marcado \`\`\`json \`\`\`, ni texto adicional antes o después del objeto.
+2. **Formato de Salida:** Devuelve exclusivamente un objeto JSON válido. No incluyas explicaciones, no incluyas el bloque de marcado \`\`\`json \`\`\`, ni texto adicional antes o después del objeto.
 
 Estructura exacta del JSON:
 {
