@@ -105,7 +105,7 @@ export default function AdminScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={SBColors.NEUTRAL_WARM} />
       <View style={s.container}>
         <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+          <TouchableOpacity onPress={() => router.push('/vistas/HomeScreen')} style={s.backBtn}>
             <MaterialCommunityIcons name="arrow-left" size={24} color={SBColors.TEXT_BLACK_SOFT} />
           </TouchableOpacity>
           <Text style={s.title}>Panel de Administración</Text>
