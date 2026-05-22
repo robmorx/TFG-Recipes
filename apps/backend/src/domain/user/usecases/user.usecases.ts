@@ -71,12 +71,16 @@ export class UserUseCase implements IUserUseCase {
   }
 
   async delete(uuid: string): Promise<boolean> {
+    console.log('usecase');
     const user = await this.userRepository.getByUUID(uuid);
+    console.log(user);
     if (!user) return false;
-    const deleted = await this.userRepository.delete(uuid);
-    if (deleted) {
+    if (user) {
+      
       await this.inventoryRepository.delete(uuid);
     }
+    const deleted = await this.userRepository.delete(uuid);
+    
     return deleted > 0;
   }
 

@@ -60,10 +60,16 @@ export class UsersController {
     return this.userUseCase.add(dto);
   }
 
-  @Delete('delete')
-  @ApiOperation({ summary: 'Delete user by UUID' })
-  @ApiResponse({ status: 200, description: 'User deleted' })
+ @Delete('delete/:user_uuid') 
+  @ApiOperation({ summary: 'Eliminar usuario por UUID' })
+  @ApiParam({ 
+    name: 'user_uuid', 
+    description: 'El identificador único (UUID) del usuario a eliminar',
+    example: '123e4567-e89b-12d3-a456-426614174000' 
+  })
+  @ApiResponse({ status: 200, description: 'Usuario eliminado exitosamente' })
   async delete(@Param('user_uuid') user_uuid: string) {
+    console.log('Eliminando usuario con UUID:', user_uuid);
     return this.userUseCase.delete(user_uuid);
   }
 

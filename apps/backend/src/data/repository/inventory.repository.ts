@@ -37,6 +37,7 @@ export class InventoryRepository implements IInventoryRepository {
     const inventory = await this.prisma.inventory.findUnique({
       where: { userId: userUuid },
     });
+    console.log(inventory)
     if (!inventory) return 0;
     await this.prisma.inventory.delete({ where: { id: inventory.id } });
     return 1;

@@ -21,7 +21,11 @@ export class UserRepository implements IUserRepository {
   }
 
   async getByUUID(uuid: string): Promise<User | null> {
+    console.log('get');
+    console.log(uuid);
     const user = await this.prisma.user.findUnique({ where: { id: uuid } });
+    console.log(user);
+    console.log(uuid);
     if (!user) return null;
     return this.mapToEntity(user);
   }
@@ -50,11 +54,18 @@ export class UserRepository implements IUserRepository {
   }
 
   async delete(uuid: string): Promise<number> {
+  try {
     const user = await this.prisma.user.findUnique({ where: { id: uuid } });
+    
     if (!user) return 0;
+
     await this.prisma.user.delete({ where: { id: uuid } });
     return 1;
+  } catch (error) {
+    console.error("Error en Prisma delete:", error.code, error.message);
+    throw error; 
   }
+}
 
   async update(uuid: string, entity: Partial<User>): Promise<number> {
     const user = await this.prisma.user.findUnique({ where: { id: uuid } });
