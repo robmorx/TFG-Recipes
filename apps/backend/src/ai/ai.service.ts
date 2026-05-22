@@ -17,21 +17,28 @@ export class AiService {
     });
   }
 
-  async generate(prompt: string): Promise<{
+  async generate(
+    prompt: string,
+    dietaryPreference?: string,
+  ): Promise<{
     name: string;
     ingredients: string[];
     steps: { instruction: string; timerMinutes: number }[];
   }> {
     try {
       const model =
-        this.configService.get<string>('GEMINI_MODEL') || 'gemini-3-flash';
+        this.configService.get<string>('GEMINI_MODEL') || 'gemini-2.0-flash';
+
+      const dietaryNote = dietaryPreference
+        ? `- Preferencia dietética: ${dietaryPreference}`
+        : '';
 
       const result = await this.ai.models.generateContent({
         model,
         contents: `Actúa como un chef experto y generador de datos JSON. Tu tarea es generar una receta en ESPAÑOL siguiendo estas reglas estrictas:
 
 1. **Restricción de Ingredientes:** Utiliza ÚNICAMENTE los ingredientes proporcionados en la lista del usuario y elementos básicos de despensa (aceite, sal, pimienta y agua). Está terminantemente PROHIBIDO inventar o añadir cualquier otro alimento, proteína, vegetal o condimento que no figure en la lista.
-2. **Formato de Salida:** Devuelve exclusivamente un objeto JSON válido. No incluyas explicaciones, no incluyas el bloque de marcado \`\`\`json \`\`\`, ni texto adicional antes o después del objeto.
+2. **Formato de Salida:** Devuelve exclusivamente un objeto JSON válido, sin explicaciones ni texto adicional.
 
 Estructura exacta del JSON:
 {
@@ -46,8 +53,8 @@ Estructura exacta del JSON:
 }
 
 Datos de entrada:
-- Lista de ingredientes: \${prompt}
-- Preferencia dietética: \${dietaryPreference}`,
+- Lista de ingredientes disponibles: ${prompt}
+${dietaryNote}`,
         config: {
           responseMimeType: 'application/json',
           responseSchema: {
@@ -74,12 +81,17 @@ Datos de entrada:
                 },
               },
             },
-            required: ['ingredients', 'steps'],
+            required: ['name', 'ingredients', 'steps'],
           },
         },
       });
 
-      const text = result.text || '{}';
+      // result.text es un método, no una propiedad
+      const text = result.text;
+      if (!text) {
+        throw new BadRequestException('AI returned an empty response');
+      }
+
       let parsed: {
         name: string;
         ingredients: string[];
@@ -87,12 +99,7 @@ Datos de entrada:
       };
 
       try {
-        const parsedResult = JSON.parse(text) as {
-          name: string;
-          ingredients: string[];
-          steps: Array<{ instruction: string; timerMinutes: number }>;
-        };
-        parsed = parsedResult;
+        parsed = JSON.parse(text) as typeof parsed;
       } catch (parseError) {
         this.logger.error('Failed to parse AI response as JSON', parseError);
         throw new BadRequestException('AI generated invalid response format');
