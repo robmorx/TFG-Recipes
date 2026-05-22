@@ -9,6 +9,12 @@
       "cache": false,
       "persistent": true
     },
+    "tasks": {
+      "build:apk": {
+        "cache": false,
+        "outputs": []
+      }
+    },
     "lint": {}
   }
 }
