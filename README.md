@@ -1,11 +1,11 @@
-# 🍳 CeroSobras — Recetas Inteligentes con IA
+# CeroSobras — Recetas Inteligentes con IA
 
 > **Trabajo de Fin de Grado (TFG)**
 >
 > Aplicación móvil para generar recetas de cocina personalizadas utilizando **Inteligencia Artificial (Google Gemini)**, basándose en los ingredientes que el usuario tiene en su inventario. El objetivo es **reducir el desperdicio de alimentos** permitiendo al usuario cocinar solo con lo que ya tiene en casa.
 
 ---
-## ⚡ Comandos Rápidos
+## Comandos
  
 ### Instalación
  
@@ -66,7 +66,7 @@ pnpm --filter backend test:e2e      # Tests end-to-end del backend
 ---
 ---
 
-## 📋 Índice
+## Índice
 
 1. [Descripción General](#-descripción-general)
 2. [Stack Tecnológico](#-stack-tecnológico)
@@ -94,17 +94,8 @@ pnpm --filter backend test:e2e      # Tests end-to-end del backend
 13. [Instalación y Puesta en Marcha](#-instalación-y-puesta-en-marcha)
 
 ---
-## WEB
-  URL: https://tfg-recipes-frontend-dqq47lpjh-robmor92x-2625s-projects.vercel.app/
-## Usuarios
-  SUPERUSER:
-    Usuario: admin@admin.com
-    Contraseña: admin
-  USER:
-    Usuario: user@user.com
-    Contraseña: user123
 
-## 🌟 Descripción General
+## Descripción General
 
 **CeroSobras** es una aplicación fullstack compuesta por:
 
@@ -118,12 +109,12 @@ pnpm --filter backend test:e2e      # Tests end-to-end del backend
 
 ### Características principales
 
-- 🤖 **Generación de recetas con IA** — El usuario selecciona ingredientes de su inventario y la IA genera una receta completa (nombre, ingredientes, pasos con temporizadores).
-- 📦 **Inventario personal** — Cada usuario tiene un inventario 1:1 donde gestiona los alimentos que tiene en casa.
-- 🔐 **Autenticación JWT** — Sistema completo con access tokens (15min) + refresh tokens (7 días), verificación de email y recuperación de contraseña.
-- 🛡️ **Roles** — Sistema de roles `USER` / `SUPERUSER` con límite diario de recetas configurable para usuarios normales.
-- 📧 **Notificaciones por email** — Código de verificación de cuenta y recuperación de contraseña vía Resend o SMTP.
-- 📖 **Swagger/OpenAPI** — Documentación interactiva de la API en `/api/docs`.
+-  **Generación de recetas con IA** — El usuario selecciona ingredientes de su inventario y la IA genera una receta completa (nombre, ingredientes, pasos con temporizadores).
+-  **Inventario personal** — Cada usuario tiene un inventario 1:1 donde gestiona los alimentos que tiene en casa.
+-  **Autenticación JWT** — Sistema completo con access tokens (15min) + refresh tokens (7 días), verificación de email y recuperación de contraseña.
+-  **Roles** — Sistema de roles `USER` / `SUPERUSER` con límite diario de recetas configurable para usuarios normales.
+- **Notificaciones por email** — Código de verificación de cuenta y recuperación de contraseña vía Resend o SMTP.
+- **Swagger/OpenAPI** — Documentación interactiva de la API en `/api/docs`.
 
 ---
 
@@ -276,7 +267,7 @@ TFG/                              ← Raíz del monorepo
 
 ---
 
-## 🔄 Flujo de Datos Completo
+##  Flujo de Datos Completo
 
 ### Flujo 1: Generar una Receta con IA
 
@@ -386,7 +377,7 @@ LoginScreen ──▶ AuthRepo.login(email, pwd)
 
 ---
 
-## 📦 Backend — Capa por Capa
+##  Backend — Capa por Capa
 
 ### 1. Capa de Presentación (Controllers)
 
@@ -558,7 +549,7 @@ Métodos:
 
 ---
 
-## 📱 Frontend — Capa por Capa
+## Frontend — Capa por Capa
 
 ### 1. Pantallas (Vistas)
 
@@ -657,7 +648,7 @@ container.bind<IRecipeUseCase>(TYPES.IRecipeUseCase).to(RecipeUseCase);
 
 ---
 
-## 🌐 API REST — Endpoints
+##  API REST — Endpoints
 
 Base URL: `http://localhost:3000/api`
 
@@ -931,7 +922,7 @@ ALTER TABLE "RefreshToken"
 
 ---
 
-## 🔐 Autenticación y Seguridad
+##  Autenticación y Seguridad
 
 ### Flujo completo de autenticación
 
